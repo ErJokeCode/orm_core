@@ -7,8 +7,8 @@ from sqlalchemy import Result, Select, asc, delete, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 
-from orm.base_schemes import ListDTO, ResponseStatus
-from base import Base
+from orm_core.orm.base_schemes import ListDTO, ResponseStatus
+from orm_core.base import Base
 
 
 _log = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ E = TypeVar('E', bound=BaseModel)
 O = TypeVar('O', bound=BaseModel)
 
 
-class ItemOrm(Generic[M, I, E, O]):
+class BaseModelOrm(Generic[M, I, E, O]):
     def __init__(self, model: type[M], input_scheme: type[I], edit_schema: type[E], out_scheme: type[O]) -> None:
         self.model = model
         self.input_scheme = input_scheme
@@ -577,32 +577,3 @@ class ItemOrm(Generic[M, I, E, O]):
 
         result = await session.execute(query)
         return result
-
-
-class BaseItemOrm:
-    def __init__(self) -> None:
-        pass
-
-    async def get_all_query(self, session: AsyncSession, query: Select) -> Sequence:
-        _log.info("Base query")
-
-        result = await session.execute(query)
-        items = result.scalars().all()
-
-        return items
-
-    async def get_dict_query(self, session: AsyncSession, query: Select) -> dict:
-        _log.info("Base query")
-
-        result = await session.execute(query)
-        items = result.tuples().all()
-
-        return {item[0]: item[1] for item in items}
-
-    async def get_tuple_query(self, session: AsyncSession, query: Select) -> Sequence:
-        _log.info("Base query")
-
-        result = await session.execute(query)
-        items = result.tuples().all()
-
-        return items

@@ -13,12 +13,14 @@ setup(
     install_requires=[
         'pydantic>=2.11.4',
         'fastapi>=0.115.12',
-        'SQLAlchemy>=2.0.41'
+        'SQLAlchemy>=2.0.41',
+        'asyncpg==0.30.0'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.13',
+    python_requires='>=3.9',
+    package_data={"orm_core": ["py.typed"]},
 )

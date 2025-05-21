@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine  # noqa
 
-from base import Base
+from orm_core.base import Base
 
 
-class DBCore:
+class CoreOrm:
     def __init__(self, async_url: str):
         self.__engine = create_async_engine(
             url=async_url
