@@ -3,7 +3,7 @@ from typing import Literal, Sequence, TypeVar, Generic, Union, overload
 from uuid import UUID
 from fastapi import HTTPException
 from pydantic import BaseModel
-from sqlalchemy import Result, Select, asc, delete, desc, func, or_, select
+from sqlalchemy import Result, Select, asc, delete, desc, func, inspect, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 
@@ -26,6 +26,17 @@ class BaseModelOrm(Generic[M, I, E, O]):
         self.input_scheme = input_scheme
         self.edit_schema = edit_schema
         self.out_scheme = out_scheme
+
+    def get_all_relations(self) -> dict[str, str]:
+        """Возвращает имена всех отношений модели SQLAlchemy"""
+        _log.debug("Get all relations %s", self.model)
+        inspector = inspect(self.model)
+        if inspector is None:
+            return {}
+        return {
+            rel: "list" if inspector.relationships[rel].uselist else "one"
+            for rel in inspector.relationships.keys()
+        }
 
     @overload
     async def add(
