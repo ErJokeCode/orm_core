@@ -10,7 +10,7 @@ from sqlalchemy import exc
 from typing import Annotated, AsyncGenerator, Optional, Sequence, Union
 from fastapi.exceptions import HTTPException
 
-from orm_core.orm.base_schemes import ListDTO, ResponseStatus
+from orm_core.base_schemes import ListDTO, ResponseStatus
 from orm_core.orm.model_orm import BaseModelOrm
 
 

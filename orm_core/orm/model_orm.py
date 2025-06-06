@@ -1,5 +1,5 @@
 import logging
-from typing import Literal, Sequence, TypeVar, Generic, Union, overload
+from typing import Any, Literal, Optional, Sequence, TypeVar, Generic, Union, overload
 from uuid import UUID
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -7,7 +7,7 @@ from sqlalchemy import Result, Select, asc, delete, desc, func, inspect, or_, se
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 
-from orm_core.orm.base_schemes import ListDTO, ResponseStatus
+from orm_core.base_schemes import ListDTO, ResponseStatus
 from orm_core.base import Base
 
 
@@ -21,7 +21,31 @@ O = TypeVar('O', bound=BaseModel)
 
 
 class BaseModelOrm(Generic[M, I, E, O]):
-    def __init__(self, model: type[M], input_scheme: type[I], edit_schema: type[E], out_scheme: type[O]) -> None:
+
+    @overload
+    def __init__(
+        self: "BaseModelOrm[M, Any, Any, Any]",
+        model: type[M]
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        model: type[M],
+        input_scheme: type[I],
+        edit_schema: type[E],
+        out_scheme: type[O]
+    ) -> None:
+        ...
+
+    def __init__(
+        self,
+        model: type[M],
+        input_scheme: Optional[type[I]] = None,
+        edit_schema: Optional[type[E]] = None,
+        out_scheme: Optional[type[O]] = None
+    ) -> None:
         self.model = model
         self.input_scheme = input_scheme
         self.edit_schema = edit_schema
@@ -37,6 +61,15 @@ class BaseModelOrm(Generic[M, I, E, O]):
             rel: "list" if inspector.relationships[rel].uselist else "one"
             for rel in inspector.relationships.keys()
         }
+
+    @overload
+    async def add(
+        self: "BaseModelOrm[M, Any, Any, Any]",
+        session: AsyncSession,
+        data: M,
+        *,
+        is_model: Literal[True] = True
+    ) -> M: ...
 
     @overload
     async def add(
@@ -87,14 +120,17 @@ class BaseModelOrm(Generic[M, I, E, O]):
     async def add(
         self,
         session: AsyncSession,
-        data: I,
+        data: I | M,
         is_return: bool = True,
         is_model: bool = True,
         return_query: Union[Select, None] = None
     ) -> Union[M, O, None]:
         _log.info("Add %s", self.model.__name__)
 
-        model = self.model(**data.model_dump())
+        if isinstance(data, self.model):
+            model = data
+        else:
+            model = self.model(**data.model_dump())
         session.add(model)
         await session.flush()
 
