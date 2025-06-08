@@ -6,49 +6,49 @@ from pydantic import BaseModel
 from sqlalchemy import Result, Select, asc, delete, desc, func, inspect, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .protocols.model.protocol_model import ModelProtocal
-from .implementation.imp_model import ImpModel
+from .implementation.mng_model import MngModel
+from .implementation.mng_schemes import MngSchemes
+
+from .protocols.model.protocol_model import ModelProtocol
 
 
 _log = logging.getLogger(__name__)
 
 
 M = TypeVar('M')
-I = TypeVar('I', bound=BaseModel)
-E = TypeVar('E', bound=BaseModel)
-O = TypeVar('O', bound=BaseModel)
+A = TypeVar('A', bound=BaseModel, default=Any)
+E = TypeVar('E', bound=BaseModel, default=Any)
+O = TypeVar('O', bound=BaseModel, default=Any)
 
 
-class FactoryOrm(Generic[M, I, E, O]):
+@overload
+def create_factory_orm(
+    model: type[M]
+) -> "MngModel[M]": ...
 
-    @overload
-    @classmethod
-    def create(
-        cls,
-        model: type[M]
-    ) -> ImpModel[M]:
-        ...
 
-    @overload
-    @classmethod
-    def create(
-            cls,
-            model: type[M],
-            input_scheme: type[I],
-            edit_schema: type[E],
-            out_scheme: type[O],
-    ) -> None:
-        ...
+@overload
+def create_factory_orm(
+    model: type[M],
+    add_scheme: type[A],
+    edit_scheme: type[E],
+    out_scheme: type[O],
+) -> "MngSchemes[M, A, E, O]": ...
 
-    @classmethod
-    def create(
-            cls,
-            model: type[M],
-            input_scheme: Optional[type[I]] = None,
-            edit_schema: Optional[type[E]] = None,
-            out_scheme: Optional[type[O]] = None,
-    ) -> Union[ImpModel[M], None]:
-        if input_scheme and edit_schema and out_scheme:
-            return None
 
-        return ImpModel(model)
+def create_factory_orm(
+
+    model: type[M],
+
+    add_scheme: Optional[type[A]] = None,
+
+    edit_scheme: Optional[type[E]] = None,
+
+    out_scheme: Optional[type[O]] = None,
+
+) -> Union["MngModel[M]", "MngSchemes[M, A, E, O]"]:
+
+    if add_scheme and edit_scheme and out_scheme:
+        return MngSchemes(model, add_scheme, edit_scheme, out_scheme)
+
+    return MngModel(model)

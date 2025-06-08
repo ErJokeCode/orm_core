@@ -15,12 +15,12 @@ _log = logging.getLogger(__name__)
 
 
 M = TypeVar('M')
-I = TypeVar('I', bound=BaseModel)
-E = TypeVar('E', bound=BaseModel)
-O = TypeVar('O', bound=BaseModel)
+A = TypeVar('A', bound=BaseModel, default=Any)
+E = TypeVar('E', bound=BaseModel, default=Any)
+O = TypeVar('O', bound=BaseModel, default=Any)
 
 
-class BaseModelOrm(Generic[M, I, E, O]):
+class BaseModelOrm(Generic[M, A, E, O]):
 
     @overload
     def __init__(
@@ -33,8 +33,8 @@ class BaseModelOrm(Generic[M, I, E, O]):
     def __init__(
         self,
         model: type[M],
-        input_scheme: type[I],
-        edit_schema: type[E],
+        input_scheme: type[A],
+        edit_scheme: type[E],
         out_scheme: type[O]
     ) -> None:
         ...
@@ -42,13 +42,13 @@ class BaseModelOrm(Generic[M, I, E, O]):
     def __init__(
         self,
         model: type[M],
-        input_scheme: Optional[type[I]] = None,
-        edit_schema: Optional[type[E]] = None,
+        input_scheme: Optional[type[A]] = None,
+        edit_scheme: Optional[type[E]] = None,
         out_scheme: Optional[type[O]] = None
     ) -> None:
         self.model = model
         self.input_scheme = input_scheme
-        self.edit_schema = edit_schema
+        self.edit_scheme = edit_scheme
         self.out_scheme = out_scheme
 
     def get_all_relations(self) -> dict[str, str]:
@@ -75,7 +75,7 @@ class BaseModelOrm(Generic[M, I, E, O]):
     async def add(
         self,
         session: AsyncSession,
-        data: I,
+        data: A,
         *,
         is_model: Literal[True] = True
     ) -> M: ...
@@ -84,7 +84,7 @@ class BaseModelOrm(Generic[M, I, E, O]):
     async def add(
         self,
         session: AsyncSession,
-        data: I,
+        data: A,
         *,
         is_model: Literal[True] = True,
         return_query: Select
@@ -94,7 +94,7 @@ class BaseModelOrm(Generic[M, I, E, O]):
     async def add(
         self,
         session: AsyncSession,
-        data: I,
+        data: A,
         *,
         is_model: Literal[False]
     ) -> O: ...
@@ -103,7 +103,7 @@ class BaseModelOrm(Generic[M, I, E, O]):
     async def add(
         self,
         session: AsyncSession,
-        data: I,
+        data: A,
         *,
         is_model: Literal[False],
         return_query: Select
@@ -113,14 +113,14 @@ class BaseModelOrm(Generic[M, I, E, O]):
     async def add(
         self,
         session: AsyncSession,
-        data: I,
+        data: A,
         is_return: Literal[False]
     ) -> None: ...
 
     async def add(
         self,
         session: AsyncSession,
-        data: I | M,
+        data: A | M,
         is_return: bool = True,
         is_model: bool = True,
         return_query: Union[Select, None] = None

@@ -174,11 +174,11 @@ class BaseApi:
         return get_all_list
 
     def __create_func_add(self, item_orm: BaseModelOrm):
-        add_schema = item_orm.input_scheme
+        add_scheme = item_orm.input_scheme
 
         async def add(
             session: Annotated[AsyncSession, Depends(self.get_db_session)],
-            data: add_schema
+            data: add_scheme
         ):
             return await item_orm.add(
                 session=session,
@@ -188,12 +188,12 @@ class BaseApi:
         return add
 
     def __create_func_edit(self, item_orm: BaseModelOrm):
-        edit_schema = item_orm.edit_schema
+        edit_scheme = item_orm.edit_scheme
 
         async def edit(
             session: Annotated[AsyncSession, Depends(self.get_db_session)],
             id: Union[int, UUID],
-            data: edit_schema
+            data: edit_scheme
         ):
             return await item_orm.edit(
                 session=session,

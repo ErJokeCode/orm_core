@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Generic, Optional, Sequence, TypeVar, Union, overload
+from typing import Any, Generic, Optional, Sequence, TypeVar, Union, overload
 
 from fastapi import APIRouter, params
 from pydantic import BaseModel
@@ -10,12 +10,12 @@ from orm_core.api.base_api import BaseApi
 from orm_core.orm.model_orm import BaseModelOrm
 
 M = TypeVar('M')
-I = TypeVar('I', bound=BaseModel)
-E = TypeVar('E', bound=BaseModel)
-O = TypeVar('O', bound=BaseModel)
+A = TypeVar('A', bound=BaseModel, default=Any)
+E = TypeVar('E', bound=BaseModel, default=Any)
+O = TypeVar('O', bound=BaseModel, default=Any)
 
 
-class ItemOrm(BaseModelOrm, Generic[M, I, E, O]):
+class ItemOrm(BaseModelOrm, Generic[M, A, E, O]):
     """
     ORM класс для работы с моделью.
 
@@ -24,11 +24,11 @@ class ItemOrm(BaseModelOrm, Generic[M, I, E, O]):
 
     Примеры:
         # Без роутера
-        item = ItemOrm(MyModel, InputSchema, EditSchema, OutputSchema)
+        item = ItemOrm(MyModel, InputScheme, EditScheme, OutputScheme)
         hasattr(item, 'router')  # False
 
         # С роутером
-        item = ItemOrm(MyModel, InputSchema, EditSchema, OutputSchema, 
+        item = ItemOrm(MyModel, InputScheme, EditScheme, OutputScheme, 
                       ["name"], session_factory)
         hasattr(item, 'router')  # True
         isinstance(item.router, APIRouter)  # True
@@ -38,14 +38,14 @@ class ItemOrm(BaseModelOrm, Generic[M, I, E, O]):
     def __init__(
         self,
         model: type[M],
-        input_scheme: type[I],
-        edit_schema: type[E],
+        input_scheme: type[A],
+        edit_scheme: type[E],
         out_scheme: type[O],
     ) -> None:
         '''
         При инициализации только с model и схемами не создает роутер.
         Пример:
-        item = ItemOrm(MyModel, InputSchema, EditSchema, OutputSchema)
+        item = ItemOrm(MyModel, InputScheme, EditScheme, OutputScheme)
         hasattr(item, 'router')  # False
         '''
         ...
@@ -54,8 +54,8 @@ class ItemOrm(BaseModelOrm, Generic[M, I, E, O]):
     def __init__(
         self,
         model: type[M],
-        input_scheme: type[I],
-        edit_schema: type[E],
+        input_scheme: type[A],
+        edit_scheme: type[E],
         out_scheme: type[O],
         *,
         search_fields: list[str],
@@ -64,7 +64,7 @@ class ItemOrm(BaseModelOrm, Generic[M, I, E, O]):
         '''
         При передаче session_factory и search_fields создает роутер FastAPI.
         Пример:
-        item = ItemOrm(MyModel, InputSchema, EditSchema, OutputSchema, 
+        item = ItemOrm(MyModel, InputScheme, EditScheme, OutputScheme, 
                       ["name"], session_factory)
         hasattr(item, 'router')  # True
         isinstance(item.router, APIRouter)  # True
@@ -75,8 +75,8 @@ class ItemOrm(BaseModelOrm, Generic[M, I, E, O]):
     def __init__(
         self,
         model: type[M],
-        input_scheme: type[I],
-        edit_schema: type[E],
+        input_scheme: type[A],
+        edit_scheme: type[E],
         out_scheme: type[O],
         *,
         search_fields: list[str],
@@ -93,8 +93,8 @@ class ItemOrm(BaseModelOrm, Generic[M, I, E, O]):
     def __init__(
         self,
         model: type[M],
-        input_scheme: type[I],
-        edit_schema: type[E],
+        input_scheme: type[A],
+        edit_scheme: type[E],
         out_scheme: type[O],
         search_fields: Union[list[str], None] = None,
         session_factory: Union[async_sessionmaker[AsyncSession], None] = None,
@@ -102,7 +102,7 @@ class ItemOrm(BaseModelOrm, Generic[M, I, E, O]):
         tags: Optional[list[Union[str, Enum]]] = None,
         dependencies: Optional[Sequence[params.Depends]] = None,
     ) -> None:
-        super().__init__(model, input_scheme, edit_schema, out_scheme)
+        super().__init__(model, input_scheme, edit_scheme, out_scheme)
 
         if session_factory is not None:
             self.__api_orm = BaseApi(

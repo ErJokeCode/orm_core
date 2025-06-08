@@ -15,16 +15,16 @@ _log = logging.getLogger(__name__)
 
 
 M = TypeVar('M')
-I = TypeVar('I', bound=BaseModel)
-E = TypeVar('E', bound=BaseModel)
-O = TypeVar('O', bound=BaseModel)
+A = TypeVar('A', bound=BaseModel, default=Any)
+E = TypeVar('E', bound=BaseModel, default=Any)
+O = TypeVar('O', bound=BaseModel, default=Any)
 
 
-class BasicGetOperations(Generic[M, I, E, O]):
+class BasicGetOperations(Generic[M, A, E, O]):
 
     model: type[M]
-    input_scheme: type[I]
-    edit_schema: type[E]
+    input_scheme: type[A]
+    edit_scheme: type[E]
     out_scheme: type[O]
 
     async def get_by_query(
