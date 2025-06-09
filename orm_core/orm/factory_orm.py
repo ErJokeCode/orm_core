@@ -22,7 +22,39 @@ O = TypeVar('O', bound=BaseModel, default=Any)
 @overload
 def create_factory_orm(
     model: type[M]
-) -> "MngModel[M]": ...
+) -> "MngModel[M]":
+    """Фабрика для создания менеджера для работы только с моделями
+
+    Args:
+        model (type[M]): Модель для работы
+
+    Returns:
+        MngModel[M]: Менеджер для работы с моделями
+
+
+    Example:
+
+    from orm_core import ClientDB
+    from orm_core import create_factory_orm
+
+    class YourClientDB(ClientDB):
+        def __init__(self, async_url: str):
+            super().__init__(async_url)
+
+            self.user = create_factory_orm(User)
+
+    db_client = YourClientDB(
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
+    )
+
+    await db_client.user.add(...)
+    await db_client.user.edit(...)
+    await db_client.user.get_all(...)
+    await db_client.user.get_by(...)
+    await db_client.user.get_by_query(...)
+    await db_client.user.delete(...)
+    """
+    ...
 
 
 @overload
@@ -31,7 +63,47 @@ def create_factory_orm(
     add_scheme: type[A],
     edit_scheme: type[E],
     out_scheme: type[O],
-) -> "MngModelWithSchemes[M, A, E, O]": ...
+) -> "MngModelWithSchemes[M, A, E, O]":
+    """Фабрика для создания менеджера для работы с моделями и преобразование в pydantic-схемы
+
+    Args:
+        model (type[M]): Модель для работы
+        add_scheme (type[A]): Pydantic-схема для добавления
+        edit_scheme (type[E]): Pydantic-схема для редактирования
+        out_scheme (type[O]): Pydantic-схема для вывода
+
+    Returns:
+        MngModelWithSchemes[M, A, E, O]: Менеджер для работы с моделями и преобразование в pydantic-схемы
+
+
+    Example:
+
+        from orm_core import ClientDB
+        from orm_core import create_factory_orm
+
+        class YourClientDB(ClientDB):
+            def __init__(self, async_url: str):
+                super().__init__(async_url)
+
+                self.user = create_factory_orm(
+                    User
+                    InputScheme,
+                    EditScheme,
+                    OutputScheme
+                )
+
+        db_client = YourClientDB(
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
+        )
+
+        await db_client.user.add(...)
+        await db_client.user.edit(...)
+        await db_client.user.get_all(...)
+        await db_client.user.get_by(...)
+        await db_client.user.get_by_query(...)
+        await db_client.user.delete(...)
+    """
+    ...
 
 
 def create_factory_orm(

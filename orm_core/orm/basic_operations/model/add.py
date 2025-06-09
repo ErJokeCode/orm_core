@@ -85,6 +85,46 @@ class BasicModelAddOperations(Generic[M]):
         return_query: Optional[Select] = None
 
     ) -> Optional[M]:
+        """Создание объекта в базе
+
+        Args:
+            session (AsyncSession): Сессия
+            data (Union[M, dict]): Объект
+            is_return (bool, optional): Возвращать ли объект после создания. По умолчанию возвращается.
+            loads (Optional[dict[str, str]], optional): Список полей для дополнительной загрузки. По умолчанию не загружается.
+            return_query (Optional[Select], optional): Запрос для возврата объекта. (Какие-то дополнительные условия).
+
+        Raises:
+            HTTPException: 500 - ошибка в базе при добавлении
+
+        Returns:
+            Optional[M]: Объект
+
+
+        Example:
+
+            ### Для сложных случаев можно использовать свой return_query, по умолчанию он создается автоматически
+            return_user_add_query = select(
+                User
+                ).options(
+                    joinedload(
+                        User.role
+                    ).selectinload(
+                        User.permissions
+                    )
+                )
+
+            user_add = await db_client.user.add(
+                session=session, 
+                data=data, 
+                is_return=True, 
+                loads={
+                    "role": "j", # joinedload
+                    "permissions": "s" # selectinload
+                },
+                return_query=return_user_add_query
+            )
+        """
 
         _log.debug("Add model %s", self.model.__name__)
 

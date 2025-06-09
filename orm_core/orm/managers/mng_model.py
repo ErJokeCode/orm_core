@@ -26,9 +26,16 @@ class MngModel(
     BasicModelDeleteOperations[M],
     Generic[M]
 ):
-    '''
+    """
     Менеджер для работы с моделями
-    '''
+
+    Args:
+        BasicModelAddOperations (_type_): Работа с добавлением
+        BasicModelGetAllOperations (_type_): Работа с получением всех объектов
+        BasicModelEditOperations (_type_): Работа с редактированием и получением по id и полям
+        BasicModelDeleteOperations (_type_): Работа с удалением
+        Generic (_type_): _type_
+    """
 
     def __init__(self, model: type[M]) -> None:
         self.model = model
