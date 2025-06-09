@@ -3,6 +3,7 @@ from .base_schemes import ListDTO, ResponseStatus
 from .base import Base
 from .item_orm import ItemOrm
 from .orm.model_orm import BaseModelOrm
+from .orm.factory_orm import create_factory_orm
 
 __all__ = [
     "ClientDB",
@@ -10,5 +11,6 @@ __all__ = [
     "BaseModelOrm",
     "ListDTO",
     "ResponseStatus",
-    "Base"
+    "Base",
+    "create_factory_orm"
 ]

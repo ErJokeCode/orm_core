@@ -16,11 +16,63 @@ M = TypeVar('M')
 
 class BasicModelAddOperations(Generic[M]):
 
-    def __init__(self, model: type[M]) -> None:
-        self.model = model
+    model: type[M]
+
+    @overload
+    async def add(
+        self,
+        *,
+        session: AsyncSession,
+        data: Union[M, dict]
+    ) -> M:
+        ...
+
+    @overload
+    async def add(
+        self,
+        *,
+        session: AsyncSession,
+        data: Union[M, dict],
+        loads: dict[str, str]
+    ) -> M:
+        ...
+
+    @overload
+    async def add(
+        self,
+        *,
+        session: AsyncSession,
+        data: Union[M, dict],
+        return_query: Select
+    ) -> M:
+        ...
+
+    @overload
+    async def add(
+        self,
+        *,
+        session: AsyncSession,
+        data: Union[M, dict],
+        is_return: Literal[False] = False
+    ) -> None:
+        ...
+
+    @overload
+    async def add(
+        self,
+        *,
+        session: AsyncSession,
+        data: Union[M, dict],
+        is_return: bool = True,
+        loads: Optional[dict[str, str]] = None,
+        return_query: Optional[Select] = None
+    ) -> Optional[M]:
+        ...
 
     async def add(
         self,
+
+        *,
 
         session: AsyncSession,
 

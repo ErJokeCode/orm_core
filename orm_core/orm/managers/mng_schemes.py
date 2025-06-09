@@ -6,9 +6,11 @@ from pydantic import BaseModel
 from sqlalchemy import Result, Select, asc, delete, desc, func, inspect, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..basic_operations.bs_op_schemes.sc_add import BasicAddSchemeOperations
+from ..basic_operations.model_with_schemes.add import BasicAddSchemeOperations
+from ..basic_operations.model_with_schemes.get_by import BasicGetBySchemeOperations
 
-from ..basic_operations.bs_op_model.md_add import BasicModelAddOperations
+from ..basic_operations.model.add import BasicModelAddOperations
+from ..basic_operations.model.get_by import BasicModelGetByOperations
 
 
 M = TypeVar('M')
@@ -17,8 +19,9 @@ E = TypeVar('E', bound=BaseModel, default=Any)
 O = TypeVar('O', bound=BaseModel, default=Any)
 
 
-class MngSchemes(
-    BasicAddSchemeOperations,
+class MngModelWithSchemes(
+    BasicAddSchemeOperations[M, A, E, O],
+    BasicGetBySchemeOperations[M, A, E, O],
     Generic[M, A, E, O],
 ):
     def __init__(
@@ -32,5 +35,3 @@ class MngSchemes(
         self.add_scheme = add_scheme
         self.edit_scheme = edit_scheme
         self.out_scheme = out_scheme
-
-        self.model_operation = BasicModelAddOperations(model)

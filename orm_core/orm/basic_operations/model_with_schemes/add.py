@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import Result, Select, asc, delete, desc, func, inspect, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..bs_op_model.md_add import BasicModelAddOperations
+from ..model.add import BasicModelAddOperations
 
 
 _log = logging.getLogger(__name__)
@@ -18,28 +18,36 @@ E = TypeVar('E', bound=BaseModel, default=Any)
 O = TypeVar('O', bound=BaseModel, default=Any)
 
 
-class BasicAddSchemeOperations(Generic[M, A, E, O]):
+class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
 
     model: type[M]
     input_scheme: type[A]
     edit_scheme: type[E]
     out_scheme: type[O]
 
-    model_operation: BasicModelAddOperations[M]
-
     @overload
     async def add(
         self,
-        session: AsyncSession,
         *,
+        session: AsyncSession,
         data: Union[A, M, dict],
     ) -> M: ...
 
     @overload
     async def add(
         self,
-        session: AsyncSession,
         *,
+        session: AsyncSession,
+        data: Union[A, M, dict],
+        loads: dict[str, str]
+    ) -> M:
+        ...
+
+    @overload
+    async def add(
+        self,
+        *,
+        session: AsyncSession,
         data: Union[A, M, dict],
         return_query: Select
     ) -> M: ...
@@ -47,8 +55,30 @@ class BasicAddSchemeOperations(Generic[M, A, E, O]):
     @overload
     async def add(
         self,
-        session: AsyncSession,
         *,
+        session: AsyncSession,
+        data: Union[A, M, dict],
+        is_return: Literal[False] = False
+    ) -> None:
+        ...
+
+    @overload
+    async def add(
+        self,
+        *,
+        session: AsyncSession,
+        data: Union[A, M, dict],
+        is_return: bool = True,
+        loads: Optional[dict[str, str]] = None,
+        return_query: Optional[Select] = None
+    ) -> Optional[M]:
+        ...
+
+    @overload
+    async def add(
+        self,
+        *,
+        session: AsyncSession,
         data: Union[A, M, dict],
         is_model: Literal[False]
     ) -> O: ...
@@ -56,39 +86,67 @@ class BasicAddSchemeOperations(Generic[M, A, E, O]):
     @overload
     async def add(
         self,
-        session: AsyncSession,
         *,
+        session: AsyncSession,
         data: Union[A, M, dict],
-        is_model: Literal[False],
-        return_query: Select
+        loads: dict[str, str],
+        is_model: Literal[False]
+    ) -> O:
+        ...
+
+    @overload
+    async def add(
+        self,
+        *,
+        session: AsyncSession,
+        data: Union[A, M, dict],
+        return_query: Select,
+        is_model: Literal[False]
     ) -> O: ...
 
     @overload
     async def add(
         self,
+        *,
         session: AsyncSession,
-        data: A,
-        is_return: Literal[False]
-    ) -> None: ...
+        data: Union[A, M, dict],
+        is_return: Literal[False] = False,
+        is_model: Literal[False]
+    ) -> None:
+        ...
 
     @overload
     async def add(
         self,
+        *,
         session: AsyncSession,
         data: Union[A, M, dict],
         is_return: bool = True,
-        is_model: bool = True,
-        return_query: Union[Select, None] = None
-    ) -> Union[M, O, None]: ...
+        loads: Optional[dict[str, str]] = None,
+        return_query: Optional[Select] = None,
+        is_model: Literal[False]
+    ) -> Optional[O]:
+        ...
 
     async def add(
         self,
+
+        *,
+
         session: AsyncSession,
+
         data: Union[A, M, dict],
+
         is_return: bool = True,
+
         is_model: bool = True,
+
+        loads: Optional[dict[str, str]] = None,
+
         return_query: Union[Select, None] = None
+
     ) -> Union[M, O, None]:
+
         _log.info("Add %s", self.model.__name__)
 
         if isinstance(data, self.model):
@@ -98,12 +156,16 @@ class BasicAddSchemeOperations(Generic[M, A, E, O]):
         else:
             model = self.model(**data.model_dump())  # type: ignore
 
-        return_model = await self.model_operation.add(
+        return_model = await super().add(
             session=session,
             data=model,
             is_return=is_return,
+            loads=loads,
             return_query=return_query
         )
+
+        if not is_return:
+            return None
 
         if is_model:
             return return_model

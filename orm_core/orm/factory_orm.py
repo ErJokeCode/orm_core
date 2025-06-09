@@ -6,10 +6,8 @@ from pydantic import BaseModel
 from sqlalchemy import Result, Select, asc, delete, desc, func, inspect, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .implementation.mng_model import MngModel
-from .implementation.mng_schemes import MngSchemes
-
-from .protocols.model.protocol_model import ModelProtocol
+from .managers.mng_model import MngModel
+from .managers.mng_schemes import MngModelWithSchemes
 
 
 _log = logging.getLogger(__name__)
@@ -33,7 +31,7 @@ def create_factory_orm(
     add_scheme: type[A],
     edit_scheme: type[E],
     out_scheme: type[O],
-) -> "MngSchemes[M, A, E, O]": ...
+) -> "MngModelWithSchemes[M, A, E, O]": ...
 
 
 def create_factory_orm(
@@ -46,9 +44,9 @@ def create_factory_orm(
 
     out_scheme: Optional[type[O]] = None,
 
-) -> Union["MngModel[M]", "MngSchemes[M, A, E, O]"]:
+) -> Union["MngModel[M]", "MngModelWithSchemes[M, A, E, O]"]:
 
     if add_scheme and edit_scheme and out_scheme:
-        return MngSchemes(model, add_scheme, edit_scheme, out_scheme)
+        return MngModelWithSchemes(model, add_scheme, edit_scheme, out_scheme)
 
     return MngModel(model)
