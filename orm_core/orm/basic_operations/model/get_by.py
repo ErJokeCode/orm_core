@@ -1,9 +1,7 @@
 import logging
-from typing import Any, Literal, Optional, Sequence, TypeVar, Generic, Union, overload
-from uuid import UUID
+from typing import Any, Literal, Optional, TypeVar, Generic, overload
 from fastapi import HTTPException
-from pydantic import BaseModel
-from sqlalchemy import Result, Select, asc, delete, desc, func, inspect, or_, select
+from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 
@@ -22,45 +20,38 @@ class BasicModelGetByOperations(Generic[M]):
     async def get_by(
         self,
         session: AsyncSession,
-        id: UUID,
         loads: dict[str, str],
         is_get_none: Literal[True],
-        **kwargs
+        **kwargs: Any
     ) -> Optional[M]: ...
 
     @overload
     async def get_by(
         self,
         session: AsyncSession,
-        id: UUID,
         loads: dict[str, str],
-        **kwargs
+        **kwargs: Any
     ) -> M: ...
 
     @overload
     async def get_by(
         self,
         session: AsyncSession,
-        id: UUID,
-        **kwargs
+        **kwargs: Any
     ) -> M: ...
 
     async def get_by(
         self,
         session: AsyncSession,
-        id: Optional[UUID] = None,
         loads: Optional[dict[str, str]] = None,
         is_get_none: bool = False,
-        **kwargs
+        **kwargs: Any
     ) -> Optional[M]:
         _log.info("Get by kwargs %s", self.model.__name__)
 
         query = select(
             self.model
         )
-
-        if id is not None:
-            query = query.filter_by(id=id)
 
         query = query.filter_by(
             **kwargs
@@ -93,8 +84,7 @@ class BasicModelGetByOperations(Generic[M]):
         self,
         *,
         session: AsyncSession,
-        query: Select,
-        id: UUID,
+        query: Select[Any],
     ) -> M: ...
 
     @overload
@@ -102,25 +92,7 @@ class BasicModelGetByOperations(Generic[M]):
         self,
         *,
         session: AsyncSession,
-        query: Select,
-    ) -> M: ...
-
-    @overload
-    async def get_by_query(
-        self,
-        *,
-        session: AsyncSession,
-        query: Select,
-        id: UUID,
-        is_get_none: Literal[True],
-    ) -> Optional[M]: ...
-
-    @overload
-    async def get_by_query(
-        self,
-        *,
-        session: AsyncSession,
-        query: Select,
+        query: Select[Any],
         is_get_none: Literal[True],
     ) -> Optional[M]: ...
 
@@ -131,18 +103,13 @@ class BasicModelGetByOperations(Generic[M]):
 
         session: AsyncSession,
 
-        query: Select,
-
-        id: Union[UUID, None] = None,
+        query: Select[Any],
 
         is_get_none: bool = False,
 
     ) -> Optional[M]:
 
         _log.info("Get model by query %s", self.model.__name__)
-
-        if id is not None:
-            query = query.filter_by(id=id)
 
         result = await session.execute(query)
         model = result.scalars().first()

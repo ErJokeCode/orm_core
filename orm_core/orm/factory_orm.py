@@ -6,30 +6,30 @@ from pydantic import BaseModel
 from sqlalchemy import Result, Select, asc, delete, desc, func, inspect, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .managers.mng_model import MngModel
-from .managers.mng_schemes import MngModelWithSchemes
+from .basic_operations.model import ManagerModel
+from .basic_operations.model_with_schemes import ManagerModelSchemes
 
 
 _log = logging.getLogger(__name__)
 
 
-M = TypeVar('M')
-A = TypeVar('A', bound=BaseModel, default=Any)
-E = TypeVar('E', bound=BaseModel, default=Any)
-O = TypeVar('O', bound=BaseModel, default=Any)
+M = TypeVar('M', bound=Any)
+A = TypeVar('A', bound=BaseModel)
+E = TypeVar('E', bound=BaseModel)
+O = TypeVar('O', bound=BaseModel)
 
 
 @overload
 def create_factory_orm(
     model: type[M]
-) -> "MngModel[M]":
+) -> ManagerModel[M]:
     """Фабрика для создания менеджера для работы только с моделями
 
     Args:
         model (type[M]): Модель для работы
 
     Returns:
-        MngModel[M]: Менеджер для работы с моделями
+        ManagerModel[M]: Менеджер для работы с моделями
 
 
     Example:
@@ -63,7 +63,7 @@ def create_factory_orm(
     add_scheme: type[A],
     edit_scheme: type[E],
     out_scheme: type[O],
-) -> "MngModelWithSchemes[M, A, E, O]":
+) -> ManagerModelSchemes[M, A, E, O]:
     """Фабрика для создания менеджера для работы с моделями и преобразование в pydantic-схемы
 
     Args:
@@ -73,7 +73,7 @@ def create_factory_orm(
         out_scheme (type[O]): Pydantic-схема для вывода
 
     Returns:
-        MngModelWithSchemes[M, A, E, O]: Менеджер для работы с моделями и преобразование в pydantic-схемы
+        ManagerModelSchemes[M, A, E, O]: Менеджер для работы с моделями и преобразование в pydantic-схемы
 
 
     Example:
@@ -116,9 +116,11 @@ def create_factory_orm(
 
     out_scheme: Optional[type[O]] = None,
 
-) -> Union["MngModel[M]", "MngModelWithSchemes[M, A, E, O]"]:
+) -> Union[ManagerModel[M], ManagerModelSchemes[M, A, E, O]]:
 
-    if add_scheme and edit_scheme and out_scheme:
-        return MngModelWithSchemes(model, add_scheme, edit_scheme, out_scheme)
-
-    return MngModel(model)
+    if add_scheme is not None and edit_scheme is not None and out_scheme is not None:
+        return ManagerModelSchemes(model, add_scheme, edit_scheme, out_scheme)
+    elif add_scheme is None and edit_scheme is None and out_scheme is None:
+        return ManagerModel(model)
+    else:
+        raise TypeError("Either all schemes must be provided or none")

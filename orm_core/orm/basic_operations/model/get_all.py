@@ -1,9 +1,7 @@
 import logging
 from typing import Any, Literal, Optional, Sequence, TypeVar, Generic, Union, overload
-from uuid import UUID
 from fastapi import HTTPException
-from pydantic import BaseModel
-from sqlalchemy import Result, Select, asc, delete, desc as func_desc, func, inspect, or_, select
+from sqlalchemy import Select, asc,  desc as func_desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 
@@ -27,12 +25,13 @@ class BasicModelGetAllOperations(Generic[M]):
         *,
         search: str,
         search_fields: list[str],
+        loads: Optional[dict[str, str]] = None,
         sort_by: str,
         desc: int,
         page: int = 1,
         limit: int = -1,
         is_pagination: Literal[False],
-        **kwargs
+        **kwargs: Any
     ) -> Sequence[M]:
         ...
 
@@ -43,11 +42,12 @@ class BasicModelGetAllOperations(Generic[M]):
         *,
         search: str,
         search_fields: list[str],
+        loads: Optional[dict[str, str]] = None,
         sort_by: str,
         desc: int,
         page: int = 1,
         limit: int = -1,
-        **kwargs
+        **kwargs: Any
     ) -> ListDTO[M]:
         ...
 
@@ -58,10 +58,11 @@ class BasicModelGetAllOperations(Generic[M]):
         *,
         search: str,
         search_fields: list[str],
+        loads: Optional[dict[str, str]] = None,
         page: int = 1,
         limit: int = -1,
         is_pagination: Literal[False],
-        **kwargs
+        **kwargs: Any
     ) -> Sequence[M]:
         ...
 
@@ -72,9 +73,10 @@ class BasicModelGetAllOperations(Generic[M]):
         *,
         search: str,
         search_fields: list[str],
+        loads: Optional[dict[str, str]] = None,
         page: int = 1,
         limit: int = -1,
-        **kwargs
+        **kwargs: Any
     ) -> ListDTO[M]:
         ...
 
@@ -83,13 +85,13 @@ class BasicModelGetAllOperations(Generic[M]):
         self,
         session: AsyncSession,
         *,
-        query_select: Optional[Select],
+        query_select: Optional[Select[Any]],
         sort_by: str,
         desc: int,
         page: int = 1,
         limit: int = -1,
         is_pagination: Literal[False],
-        **kwargs
+        **kwargs: Any
     ) -> Sequence[M]:
         ...
 
@@ -98,12 +100,12 @@ class BasicModelGetAllOperations(Generic[M]):
         self,
         session: AsyncSession,
         *,
-        query_select: Optional[Select],
+        query_select: Optional[Select[Any]],
         sort_by: str,
         desc: int,
         page: int = 1,
         limit: int = -1,
-        **kwargs
+        **kwargs: Any
     ) -> ListDTO[M]:
         ...
 
@@ -112,11 +114,11 @@ class BasicModelGetAllOperations(Generic[M]):
         self,
         session: AsyncSession,
         *,
-        query_select: Optional[Select],
+        query_select: Optional[Select[Any]],
         page: int = 1,
         limit: int = -1,
         is_pagination: Literal[False],
-        **kwargs
+        **kwargs: Any
     ) -> Sequence[M]:
         ...
 
@@ -125,10 +127,10 @@ class BasicModelGetAllOperations(Generic[M]):
         self,
         session: AsyncSession,
         *,
-        query_select: Optional[Select],
+        query_select: Optional[Select[Any]],
         page: int = 1,
         limit: int = -1,
-        **kwargs
+        **kwargs: Any
     ) -> ListDTO[M]:
         ...
 
@@ -137,10 +139,11 @@ class BasicModelGetAllOperations(Generic[M]):
         self,
         session: AsyncSession,
         *,
+        loads: Optional[dict[str, str]] = None,
         page: int = 1,
         limit: int = -1,
         is_pagination: Literal[False],
-        **kwargs
+        **kwargs: Any
     ) -> Sequence[M]:
         ...
 
@@ -149,9 +152,10 @@ class BasicModelGetAllOperations(Generic[M]):
         self,
         session: AsyncSession,
         *,
+        loads: Optional[dict[str, str]] = None,
         page: int = 1,
         limit: int = -1,
-        **kwargs
+        **kwargs: Any
     ) -> ListDTO[M]:
         ...
 
@@ -164,9 +168,11 @@ class BasicModelGetAllOperations(Generic[M]):
 
         search_fields: Optional[list[str]] = None,
 
+        loads: Optional[dict[str, str]] = None,
+
         sort_by: Optional[str] = None,
 
-        query_select: Optional[Select] = None,
+        query_select: Optional[Select[Any]] = None,
 
         desc: int = 0,
 
@@ -176,7 +182,7 @@ class BasicModelGetAllOperations(Generic[M]):
 
         is_pagination: bool = True,
 
-        **kwargs
+        **kwargs: Any
 
     ) -> Union[ListDTO[M], Sequence[M]]:
 
@@ -194,11 +200,23 @@ class BasicModelGetAllOperations(Generic[M]):
             for field in search_fields:
                 if hasattr(self.model, field):
                     column = getattr(self.model, field)
-                    search_conditions.append(
+                    search_conditions.append(  # type: ignore
                         column.ilike(f"%{search}%"))  # type: ignore
 
             if search_conditions:
-                query_select = query_select.filter(or_(*search_conditions))
+                query_select = query_select.filter(
+                    or_(*search_conditions))  # type: ignore
+
+        if loads:
+            for key, val in loads.items():
+                if val == "s":
+                    query_select = query_select.options(
+                        selectinload(getattr(self.model, key))
+                    )
+                elif val == "j":
+                    query_select = query_select.options(
+                        joinedload(getattr(self.model, key))
+                    )
 
         if kwargs:
             query_select = query_select.filter_by(**kwargs)
@@ -208,8 +226,7 @@ class BasicModelGetAllOperations(Generic[M]):
                 status_code=400, detail="Page number must be greater than 0"
             )
 
-        if is_pagination:
-            q_total_record = query_select
+        q_total_record = query_select
 
         if sort_by:
             query_select = query_select.order_by(

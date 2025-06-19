@@ -1,9 +1,7 @@
 import logging
-from typing import Any, Literal, Optional, Sequence, TypeVar, Generic, Union, overload
-from uuid import UUID
-from fastapi import HTTPException
+from typing import Any, Literal, Optional, TypeVar, Generic, Union, overload
 from pydantic import BaseModel
-from sqlalchemy import Result, Select, asc, delete, desc, func, inspect, or_, select
+from sqlalchemy import Select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..model.add import BasicModelAddOperations
@@ -30,7 +28,7 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         self,
         *,
         session: AsyncSession,
-        data: Union[A, M, dict],
+        data: Union[A, M, dict[str, Any]],
     ) -> M: ...
 
     @overload
@@ -38,7 +36,7 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         self,
         *,
         session: AsyncSession,
-        data: Union[A, M, dict],
+        data: Union[A, M, dict[str, Any]],
         loads: dict[str, str]
     ) -> M:
         ...
@@ -48,8 +46,8 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         self,
         *,
         session: AsyncSession,
-        data: Union[A, M, dict],
-        return_query: Select
+        data: Union[A, M, dict[str, Any]],
+        return_query: Select[Any]
     ) -> M: ...
 
     @overload
@@ -57,7 +55,7 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         self,
         *,
         session: AsyncSession,
-        data: Union[A, M, dict],
+        data: Union[A, M, dict[str, Any]],
         is_return: Literal[False] = False
     ) -> None:
         ...
@@ -67,10 +65,10 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         self,
         *,
         session: AsyncSession,
-        data: Union[A, M, dict],
+        data: Union[A, M, dict[str, Any]],
         is_return: bool = True,
         loads: Optional[dict[str, str]] = None,
-        return_query: Optional[Select] = None
+        return_query: Optional[Select[Any]] = None
     ) -> Optional[M]:
         ...
 
@@ -79,7 +77,7 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         self,
         *,
         session: AsyncSession,
-        data: Union[A, M, dict],
+        data: Union[A, M, dict[str, Any]],
         is_model: Literal[False]
     ) -> O: ...
 
@@ -88,7 +86,7 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         self,
         *,
         session: AsyncSession,
-        data: Union[A, M, dict],
+        data: Union[A, M, dict[str, Any]],
         loads: dict[str, str],
         is_model: Literal[False]
     ) -> O:
@@ -99,8 +97,8 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         self,
         *,
         session: AsyncSession,
-        data: Union[A, M, dict],
-        return_query: Select,
+        data: Union[A, M, dict[str, Any]],
+        return_query: Select[Any],
         is_model: Literal[False]
     ) -> O: ...
 
@@ -109,7 +107,7 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         self,
         *,
         session: AsyncSession,
-        data: Union[A, M, dict],
+        data: Union[A, M, dict[str, Any]],
         is_return: Literal[False] = False,
         is_model: Literal[False]
     ) -> None:
@@ -120,10 +118,10 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         self,
         *,
         session: AsyncSession,
-        data: Union[A, M, dict],
+        data: Union[A, M, dict[str, Any]],
         is_return: bool = True,
         loads: Optional[dict[str, str]] = None,
-        return_query: Optional[Select] = None,
+        return_query: Optional[Select[Any]] = None,
         is_model: Literal[False]
     ) -> Optional[O]:
         ...
@@ -135,7 +133,7 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
 
         session: AsyncSession,
 
-        data: Union[A, M, dict],
+        data: Union[A, M, dict[str, Any]],
 
         is_return: bool = True,
 
@@ -143,7 +141,7 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
 
         loads: Optional[dict[str, str]] = None,
 
-        return_query: Union[Select, None] = None
+        return_query: Union[Select[Any], None] = None
 
     ) -> Union[M, O, None]:
 

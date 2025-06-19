@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 
 from orm_core.base_schemes import ListDTO, ResponseStatus
-from orm_core.base import Base
+from .base import Base
 
 
 _log = logging.getLogger(__name__)

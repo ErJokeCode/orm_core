@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine  # noqa
 
-from orm_core.base import Base
+from .base import Base
 
 
 class ClientDB:
@@ -28,8 +28,6 @@ class ClientDB:
         db_client = YourClientDB(
             "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
         )
-
-
     """
 
     def __init__(self, async_url: str):

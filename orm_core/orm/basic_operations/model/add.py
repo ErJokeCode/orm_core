@@ -1,9 +1,6 @@
 import logging
-from typing import Any, Literal, Optional, Sequence, TypeVar, Generic, Union, overload
-from uuid import UUID
-from fastapi import HTTPException
-from pydantic import BaseModel
-from sqlalchemy import Result, Select, asc, delete, desc, func, inspect, or_, select
+from typing import Any, Literal, Optional, TypeVar, Generic, Union, overload
+from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 
@@ -17,13 +14,14 @@ M = TypeVar('M')
 class BasicModelAddOperations(Generic[M]):
 
     model: type[M]
+    pks: list[str]
 
     @overload
     async def add(
         self,
         *,
         session: AsyncSession,
-        data: Union[M, dict]
+        data: Union[M, dict[str, Any]]
     ) -> M:
         ...
 
@@ -32,7 +30,7 @@ class BasicModelAddOperations(Generic[M]):
         self,
         *,
         session: AsyncSession,
-        data: Union[M, dict],
+        data: Union[M, dict[str, Any]],
         loads: dict[str, str]
     ) -> M:
         ...
@@ -42,8 +40,8 @@ class BasicModelAddOperations(Generic[M]):
         self,
         *,
         session: AsyncSession,
-        data: Union[M, dict],
-        return_query: Select
+        data: Union[M, dict[str, Any]],
+        return_query: Select[Any]
     ) -> M:
         ...
 
@@ -52,7 +50,7 @@ class BasicModelAddOperations(Generic[M]):
         self,
         *,
         session: AsyncSession,
-        data: Union[M, dict],
+        data: Union[M, dict[str, Any]],
         is_return: Literal[False] = False
     ) -> None:
         ...
@@ -62,27 +60,25 @@ class BasicModelAddOperations(Generic[M]):
         self,
         *,
         session: AsyncSession,
-        data: Union[M, dict],
+        data: Union[M, dict[str, Any]],
         is_return: bool = True,
         loads: Optional[dict[str, str]] = None,
-        return_query: Optional[Select] = None
+        return_query: Optional[Select[Any]] = None
     ) -> Optional[M]:
         ...
 
     async def add(
         self,
 
-        *,
-
         session: AsyncSession,
 
-        data: Union[M, dict],
+        data: Union[M, dict[str, Any]],
 
         is_return: bool = True,
 
         loads: Optional[dict[str, str]] = None,
 
-        return_query: Optional[Select] = None
+        return_query: Optional[Select[Any]] = None
 
     ) -> Optional[M]:
         """Создание объекта в базе
@@ -139,10 +135,21 @@ class BasicModelAddOperations(Generic[M]):
         if not is_return:
             return None
 
+        if return_query is None:
+            stmt = select(self.model)
+        else:
+            stmt = return_query
+
+        filter_pks = [
+            getattr(self.model, pk) == getattr(model, pk)
+            for pk in self.pks
+        ]
+
+        stmt = stmt.filter(
+            *filter_pks
+        )
+
         if loads:
-            stmt = select(self.model).filter_by(
-                id=model.id  # type: ignore
-            )
             for key, val in loads.items():
                 if val == "s":
                     stmt = stmt.options(
@@ -153,19 +160,7 @@ class BasicModelAddOperations(Generic[M]):
                         joinedload(getattr(self.model, key))
                     )
 
-            r = await session.execute(stmt)
-            return_model = r.scalars().first()
-
-        if return_query is not None:
-            return_query = return_query.filter_by(
-                id=model.id  # type: ignore
-            )
-            r = await session.execute(return_query)
-            return_model = r.scalars().first()
-
-        if return_model is None:
-            _log.warning("Model %s not add in table", self.model.__name__)
-            raise HTTPException(
-                status_code=500, detail=f"Model {self.model.__name__} not add in table")
+        r = await session.execute(stmt)
+        return_model = r.scalars().first()
 
         return return_model

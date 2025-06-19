@@ -11,10 +11,10 @@ class Base(DeclarativeBase):
         """Relationships не используются в repr(), т.к. могут вести к неожиданным подгрузкам"""
         cols = []
         for idx, col in enumerate(self.__table__.columns.keys()):
-            if col in self.repr_cols or idx < self.repr_cols_num:
-                cols.append(f"{col}={getattr(self, col)}")
+            if col in self.repr_cols or idx < self.repr_cols_num:  # type: ignore
+                cols.append(f"{col}={getattr(self, col)}")  # type: ignore
 
-        return f"<{self.__class__.__name__} {', '.join(cols)}>"
+        return f"<{self.__class__.__name__} {', '.join(cols)}>"  # type: ignore
 
     def model_to_dict(self):
         return vars(self)
