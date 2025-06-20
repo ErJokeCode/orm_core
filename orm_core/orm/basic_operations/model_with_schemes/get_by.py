@@ -18,8 +18,119 @@ E = TypeVar('E', bound=BaseModel, default=Any)
 O = TypeVar('O', bound=BaseModel, default=Any)
 
 
-class BasicGetBySchemeOperations(Generic[M, A, E, O]):
+class BasicGetBySchemeOperations(
+        BasicModelGetByOperations[M],
+        Generic[M, A, E, O]
+):
+
     model: type[M]
     input_scheme: type[A]
     edit_scheme: type[E]
     out_scheme: type[O]
+
+    pks: list[str]
+    loads: dict[str, str]
+
+    @overload
+    async def get_by(
+        self,
+        *,
+        session: AsyncSession,
+        loads: Optional[dict[str, str]] = None,
+        is_model: Literal[True],
+        is_get_none: Literal[True],
+        **kwargs: Any
+    ) -> Optional[M]: ...
+
+    @overload
+    async def get_by(
+        self,
+        *,
+        session: AsyncSession,
+        loads: Optional[dict[str, str]] = None,
+        is_model: Literal[True],
+        is_get_none: Literal[False] = False,
+        **kwargs: Any
+    ) -> M: ...
+
+    @overload
+    async def get_by(
+        self,
+        *,
+        session: AsyncSession,
+        loads: Optional[dict[str, str]] = None,
+        is_get_none: Literal[True],
+        **kwargs: Any
+    ) -> Optional[O]: ...
+
+    @overload
+    async def get_by(
+        self,
+        *,
+        session: AsyncSession,
+        loads: Optional[dict[str, str]] = None,
+        is_get_none: Literal[False] = False,
+        **kwargs: Any
+    ) -> O: ...
+
+    @overload
+    async def get_by(
+        self,
+        *,
+        session: AsyncSession,
+        loads: Optional[dict[str, str]] = None,
+        is_model: bool = False,
+        is_get_none: bool = False,
+        **kwargs: Any
+    ) -> Union[M, O, None]: ...
+
+    async def get_by(
+        self,
+        *,
+        session: AsyncSession,
+        loads: Optional[dict[str, str]] = None,
+        is_model: bool = False,
+        is_get_none: bool = False,
+        **kwargs: Any
+    ) -> Union[O, M, None]:
+        ...
+        """
+        Получение объекта по полям
+
+        Args:
+            session (AsyncSession): Сессия
+            loads (Optional[dict[str, str]], optional): Список полей для дополнительной загрузки. Defaults to None.
+            is_model (bool, optional): Возвращать ли объект модели. Defaults to True.
+            is_get_none (bool, optional): Возвращать ли None, если объект не найден. Defaults to False.
+            **kwargs (Any): Поля
+
+        Raises:
+            HTTPException: [description]
+
+        Returns:
+            Optional[O, M]: [description]
+        """
+        if not all(pk in kwargs.keys() for pk in self.pks):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Нет обязательных полей {self.pks}"
+            )
+
+        if is_get_none:
+            model = await super().get_by(
+                session=session,
+                loads=loads,
+                is_get_none=True,
+                **kwargs
+            )
+        else:
+            model = await super().get_by(
+                session=session,
+                loads=loads,
+                **kwargs
+            )
+
+        if is_model:
+            return model
+
+        return self.out_scheme.model_validate(model)

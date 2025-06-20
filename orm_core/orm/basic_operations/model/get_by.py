@@ -19,8 +19,9 @@ class BasicModelGetByOperations(Generic[M]):
     @overload
     async def get_by(
         self,
+        *,
         session: AsyncSession,
-        loads: dict[str, str],
+        loads: Optional[dict[str, str]] = None,
         is_get_none: Literal[True],
         **kwargs: Any
     ) -> Optional[M]: ...
@@ -28,15 +29,10 @@ class BasicModelGetByOperations(Generic[M]):
     @overload
     async def get_by(
         self,
+        *,
         session: AsyncSession,
-        loads: dict[str, str],
-        **kwargs: Any
-    ) -> M: ...
-
-    @overload
-    async def get_by(
-        self,
-        session: AsyncSession,
+        loads: Optional[dict[str, str]] = None,
+        is_get_none: Literal[False] = False,
         **kwargs: Any
     ) -> M: ...
 

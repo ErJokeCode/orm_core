@@ -23,6 +23,9 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
     edit_scheme: type[E]
     out_scheme: type[O]
 
+    pks: list[str]
+    loads: dict[str, str]
+
     @overload
     async def add(
         self,
@@ -153,6 +156,9 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
             model = self.model(**data)
         else:
             model = self.model(**data.model_dump())  # type: ignore
+
+        if loads is None and not is_model:
+            loads = self.loads
 
         return_model = await super().add(
             session=session,
