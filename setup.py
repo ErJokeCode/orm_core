@@ -1,12 +1,15 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r", encoding="utf-8") as f:
+    long_description = f.read()
+
 setup(
     name="orm_core",
     version="0.0.1",
     author="Erik Soloviev",
     author_email="eriksoloviev@gmail.com",
-    description="ORM Core",
-    long_description="",
+    description="ORM Core Library for FastAPI and SQLAlchemy",
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="",
     packages=find_packages(),
@@ -21,6 +24,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.9',
+    python_requires='>=3.10',
     package_data={"orm_core": ["py.typed"]},
 )
