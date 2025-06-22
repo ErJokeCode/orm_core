@@ -11,7 +11,7 @@ setup(
     description="ORM Core Library for FastAPI and SQLAlchemy",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="",
+    url="https://github.com/ErJokeCode/orm_core",
     packages=find_packages(),
     install_requires=[
         'pydantic>=2.11.4',
@@ -26,4 +26,6 @@ setup(
     ],
     python_requires='>=3.10',
     package_data={"orm_core": ["py.typed"]},
+    license="MIT",
+    keywords="sqlalchemy fastapi orm pydantic",
 )
