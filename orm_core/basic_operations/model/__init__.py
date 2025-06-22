@@ -1,5 +1,7 @@
 import logging
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import class_mapper
 
 from .add import BasicModelAddOperations
 from .get_all import BasicModelGetAllOperations
@@ -36,5 +38,34 @@ class ManagerModel(
     """
 
     def __init__(self, model: type[M]) -> None:
+        """Менеджер для работы с моделями
+
+        Args:
+            model (type[M]): Модель
+        """
         self.model = model
-        self.pks = self.model.__table__.primary_key.columns.keys()  # type: ignore
+
+        primary_key = self.model.__table__.primary_key  # type: ignore
+        self.pks: list[str] = [
+            col.name  # type: ignore
+            for col in primary_key.columns  # type: ignore
+            if not any(isinstance(constraint, ForeignKey)
+                       for constraint in col.foreign_keys)  # type: ignore
+        ]
+
+        mapper = class_mapper(self.model)
+        self.attrs_rel: dict[str, str] = {}
+
+        self.type_cols: dict[str, Any] = {}
+        for attr in mapper.columns:
+            self.type_cols[attr.key] = attr.type.python_type
+
+        for attr in mapper.relationships:
+            self.attrs_rel[attr.key] = attr.direction.name
+
+        self.loads: dict[str, str] = {}
+        for key, val in self.attrs_rel.items():
+            if val == "MANYTOMANY" or val == "ONETOMANY":
+                self.loads[key] = "s"
+            elif val == "MANYTOONE" or val == "ONETOONE":
+                self.loads[key] = "j"

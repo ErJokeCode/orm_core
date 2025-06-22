@@ -5,7 +5,7 @@ from sqlalchemy import Select, asc,  desc as func_desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 
-from orm_core.base_schemes import ListDTO
+from ...base_schemes import ListDTO
 
 
 _log = logging.getLogger(__name__)
@@ -21,141 +21,58 @@ class BasicModelGetAllOperations(Generic[M]):
     @overload
     async def get_all(
         self,
+
         session: AsyncSession,
-        *,
-        search: str,
-        search_fields: list[str],
+
+        search: Optional[str] = None,
+
+        search_fields: Optional[list[str]] = None,
+
         loads: Optional[dict[str, str]] = None,
-        sort_by: str,
-        desc: int,
+
+        sort_by: Optional[str] = None,
+
+        query_select: Optional[Select[Any]] = None,
+
+        desc: int = 0,
+
         page: int = 1,
+
         limit: int = -1,
-        is_pagination: Literal[False],
+
+        is_pagination: Literal[False] = False,
+
         **kwargs: Any
+
     ) -> Sequence[M]:
         ...
 
     @overload
     async def get_all(
         self,
+
         session: AsyncSession,
-        *,
-        search: str,
-        search_fields: list[str],
+
+        search: Optional[str] = None,
+
+        search_fields: Optional[list[str]] = None,
+
         loads: Optional[dict[str, str]] = None,
-        sort_by: str,
-        desc: int,
-        page: int = 1,
-        limit: int = -1,
-        **kwargs: Any
-    ) -> ListDTO[M]:
-        ...
 
-    @overload
-    async def get_all(
-        self,
-        session: AsyncSession,
-        *,
-        search: str,
-        search_fields: list[str],
-        loads: Optional[dict[str, str]] = None,
-        page: int = 1,
-        limit: int = -1,
-        is_pagination: Literal[False],
-        **kwargs: Any
-    ) -> Sequence[M]:
-        ...
+        sort_by: Optional[str] = None,
 
-    @overload
-    async def get_all(
-        self,
-        session: AsyncSession,
-        *,
-        search: str,
-        search_fields: list[str],
-        loads: Optional[dict[str, str]] = None,
-        page: int = 1,
-        limit: int = -1,
-        **kwargs: Any
-    ) -> ListDTO[M]:
-        ...
+        query_select: Optional[Select[Any]] = None,
 
-    @overload
-    async def get_all(
-        self,
-        session: AsyncSession,
-        *,
-        query_select: Optional[Select[Any]],
-        sort_by: str,
-        desc: int,
-        page: int = 1,
-        limit: int = -1,
-        is_pagination: Literal[False],
-        **kwargs: Any
-    ) -> Sequence[M]:
-        ...
+        desc: int = 0,
 
-    @overload
-    async def get_all(
-        self,
-        session: AsyncSession,
-        *,
-        query_select: Optional[Select[Any]],
-        sort_by: str,
-        desc: int,
         page: int = 1,
-        limit: int = -1,
-        **kwargs: Any
-    ) -> ListDTO[M]:
-        ...
 
-    @overload
-    async def get_all(
-        self,
-        session: AsyncSession,
-        *,
-        query_select: Optional[Select[Any]],
-        page: int = 1,
         limit: int = -1,
-        is_pagination: Literal[False],
-        **kwargs: Any
-    ) -> Sequence[M]:
-        ...
 
-    @overload
-    async def get_all(
-        self,
-        session: AsyncSession,
-        *,
-        query_select: Optional[Select[Any]],
-        page: int = 1,
-        limit: int = -1,
-        **kwargs: Any
-    ) -> ListDTO[M]:
-        ...
+        is_pagination: Literal[True] = True,
 
-    @overload
-    async def get_all(
-        self,
-        session: AsyncSession,
-        *,
-        loads: Optional[dict[str, str]] = None,
-        page: int = 1,
-        limit: int = -1,
-        is_pagination: Literal[False],
         **kwargs: Any
-    ) -> Sequence[M]:
-        ...
 
-    @overload
-    async def get_all(
-        self,
-        session: AsyncSession,
-        *,
-        loads: Optional[dict[str, str]] = None,
-        page: int = 1,
-        limit: int = -1,
-        **kwargs: Any
     ) -> ListDTO[M]:
         ...
 
@@ -185,6 +102,28 @@ class BasicModelGetAllOperations(Generic[M]):
         **kwargs: Any
 
     ) -> Union[ListDTO[M], Sequence[M]]:
+        """Получение списка моделей по фильтрам, сортировке и пагинацией из базы данных
+
+        Args:
+            session (AsyncSession): Сессия базы данных
+            search (Optional[str], optional): Поиск по полям. Defaults to None.
+            search_fields (Optional[list[str]], optional): Поля для поиска. Defaults to None.
+            loads (Optional[dict[str, str]], optional): Поля для загрузки. Defaults to None.
+            sort_by (Optional[str], optional): Поле для сортировки. Defaults to None.
+            query_select (Optional[Select[Any]], optional): Запрос для выборки. Defaults to None.
+            desc (int, optional): Порядок сортировки. Defaults to 0.
+            page (int, optional): Номер страницы. Defaults to 1.
+            limit (int, optional): Количество элементов на странице. Defaults to -1.
+            is_pagination (bool, optional): Пагинация. Defaults to True.
+            **kwargs (Any): Параметры фильтрации
+
+        Raises:
+            HTTPException: 400 - Некорректные параметры
+
+        Returns:
+            ListDTO[M]: Полученный список моделей с пагинацией
+            Sequence[M]: Полученный список моделей без пагинации
+        """
 
         _log.debug("Get all model %s", self.model.__name__)
 

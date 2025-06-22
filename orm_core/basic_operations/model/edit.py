@@ -19,38 +19,85 @@ class BasicModelEditOperations(Generic[M]):
     @overload
     async def edit(
         self,
-        *,
+
         session: AsyncSession,
+
         edit_item: dict[str, Any],
-        get_return: Literal[False],
+
+        loads: Optional[dict[str, str]] = None,
+
+        is_return: Literal[False] = False,
+
+        return_query: Optional[Select[Any]] = None,
+
+        is_get_none: bool = True,
+
         **pks: Any
+
     ) -> None: ...
 
     @overload
     async def edit(
         self,
-        *,
+
         session: AsyncSession,
+
         edit_item: dict[str, Any],
-        return_query: Select[Any],
-        is_get_none: Literal[False],
+
+        loads: Optional[dict[str, str]] = None,
+
+        is_return: Literal[True] = True,
+
+        return_query: Optional[Select[Any]] = None,
+
+        is_get_none: Literal[False] = False,
+
         **pks: Any
+
     ) -> M: ...
 
     @overload
     async def edit(
         self,
-        *,
+
         session: AsyncSession,
+
         edit_item: dict[str, Any],
-        return_query: Select[Any],
+
+        loads: Optional[dict[str, str]] = None,
+
+        is_return: Literal[True] = True,
+
+        return_query: Optional[Select[Any]] = None,
+
+        is_get_none: Literal[True] = True,
+
         **pks: Any
+
+    ) -> Optional[M]: ...
+
+    @overload
+    async def edit(
+        self,
+
+        session: AsyncSession,
+
+        edit_item: dict[str, Any],
+
+        loads: Optional[dict[str, str]],
+
+        is_return: bool,
+
+        return_query: Optional[Select[Any]],
+
+        is_get_none: bool,
+
+        **pks: Any
+
     ) -> Optional[M]: ...
 
     async def edit(
         self,
-
-        *,
 
         session: AsyncSession,
 
@@ -67,6 +114,23 @@ class BasicModelEditOperations(Generic[M]):
         **pks: Any
 
     ) -> Optional[M]:
+        """Редактирование объекта в БД
+
+        Args:
+            session (AsyncSession): Сессия
+            edit_item (dict[str, Any]): Данные для редактирования
+            loads (Optional[dict[str, str]], optional): Список полей для загрузки связанных объектов. Defaults to None.
+            is_return (bool, optional): Возвращать ли объект. Defaults to True.
+            return_query (Optional[Select[Any]], optional): Кастомный запрос для возврата. Defaults to None.
+            is_get_none (bool, optional): Возвращать ли None, если объект не найден. Defaults to True.
+            **pks (Any): Первыичные ключи
+
+        Raises:
+            HTTPException: 404 - Объект не найден
+
+        Returns:
+            _type_: Модель БД
+        """
 
         _log.info("Edit model %s", self.model.__name__)
 

@@ -43,6 +43,21 @@ class BasicModelGetByOperations(Generic[M]):
         is_get_none: bool = False,
         **kwargs: Any
     ) -> Optional[M]:
+        """Получение объекта по полям
+
+        Args:
+            session (AsyncSession): Сессия БД
+            loads (Optional[dict[str, str]], optional): Список полей для загрузки. Defaults to None.
+            is_get_none (bool, optional): Возвращает None если не найден. Defaults to False.
+            **kwargs: Поля
+
+        Raises:
+            HTTPException: 404 - Объект не найден
+
+        Returns:
+            Optional[M]: Объект модели из БД или None
+        """
+
         _log.info("Get by kwargs %s", self.model.__name__)
 
         query = select(
@@ -54,14 +69,14 @@ class BasicModelGetByOperations(Generic[M]):
         )
 
         if loads is not None:
-            for key, value in loads.items():
-                if key == "s":
+            for key, val in loads.items():
+                if val == "s":
                     query = query.options(
-                        selectinload(getattr(self.model, value))
+                        selectinload(getattr(self.model, key))
                     )
-                elif key == "j":
+                elif val == "j":
                     query = query.options(
-                        joinedload(getattr(self.model, value))
+                        joinedload(getattr(self.model, key))
                     )
 
         result = await session.execute(query)
@@ -78,7 +93,6 @@ class BasicModelGetByOperations(Generic[M]):
     @overload
     async def get_by_query(
         self,
-        *,
         session: AsyncSession,
         query: Select[Any],
     ) -> M: ...
@@ -86,7 +100,6 @@ class BasicModelGetByOperations(Generic[M]):
     @overload
     async def get_by_query(
         self,
-        *,
         session: AsyncSession,
         query: Select[Any],
         is_get_none: Literal[True],
@@ -95,8 +108,6 @@ class BasicModelGetByOperations(Generic[M]):
     async def get_by_query(
         self,
 
-        *,
-
         session: AsyncSession,
 
         query: Select[Any],
@@ -104,6 +115,19 @@ class BasicModelGetByOperations(Generic[M]):
         is_get_none: bool = False,
 
     ) -> Optional[M]:
+        """Получение объекта по запросу
+
+        Args:
+            session (AsyncSession): Сессия БД
+            query (Select[Any]): Запрос
+            is_get_none (bool, optional): Возвращает None если не найден. Defaults to False.
+
+        Raises:
+            HTTPException: 404 - Объект не найден
+
+        Returns:
+            Optional[M]: Объект модели из БД
+        """
 
         _log.info("Get model by query %s", self.model.__name__)
 

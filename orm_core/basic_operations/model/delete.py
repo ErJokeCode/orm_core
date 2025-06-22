@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from orm_core.base_schemes import ResponseStatus
+from ...base_schemes import ResponseStatus
 
 
 _log = logging.getLogger(__name__)
@@ -26,6 +26,18 @@ class BasicModelDeleteOperations(Generic[M]):
         **pks: Any,
 
     ) -> ResponseStatus:
+        """Удаление объекта из БД
+
+        Args:
+            session (AsyncSession): Сессия
+            **pks (Any): Первыичные ключ для поиска объекта
+
+        Raises:
+            HTTPException: 404 - Объект не найден
+
+        Returns:
+            ResponseStatus: Статус, что объект удален успешно
+        """
 
         _log.info("Delete model %s", self.model.__name__)
 

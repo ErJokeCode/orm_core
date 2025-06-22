@@ -147,6 +147,19 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         return_query: Union[Select[Any], None] = None
 
     ) -> Union[M, O, None]:
+        """Создание объекта
+
+        Args:
+            session (AsyncSession): Сессия
+            data (Union[A, M, dict[str, Any]]): Данные для создания
+            is_return (bool, optional): Возвращать ли объект. Defaults to True.
+            is_model (bool, optional): Возвращать ли модель. Defaults to True.
+            loads (Optional[dict[str, str]], optional): Список полей для загрузки связанных объектов. Defaults to None.
+            return_query (Union[Select[Any], None], optional): Кастомный запрос для возврата. Defaults to None.
+
+        Returns:
+            Union[M, O, None]: Добавленный объект
+        """
 
         _log.info("Add %s", self.model.__name__)
 

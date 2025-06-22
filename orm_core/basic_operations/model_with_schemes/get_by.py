@@ -1,9 +1,8 @@
 import logging
-from typing import Any, Literal, Optional, Sequence, TypeVar, Generic, Union, overload
-from uuid import UUID
+from typing import Any, Literal, Optional, TypeVar, Generic, Union, overload
 from fastapi import HTTPException
 from pydantic import BaseModel
-from sqlalchemy import Result, Select, asc, delete, desc, func, inspect, or_, select
+from sqlalchemy import Select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..model.get_by import BasicModelGetByOperations
@@ -105,16 +104,19 @@ class BasicGetBySchemeOperations(
             **kwargs (Any): Поля
 
         Raises:
-            HTTPException: [description]
+            HTTPException: 404 Нет обязательных полей
 
         Returns:
-            Optional[O, M]: [description]
+            Optional[O, M]: Объект
         """
         if not all(pk in kwargs.keys() for pk in self.pks):
             raise HTTPException(
                 status_code=404,
                 detail=f"Нет обязательных полей {self.pks}"
             )
+
+        if loads is None and not is_model:
+            loads = self.loads
 
         if is_get_none:
             model = await super().get_by(
@@ -133,4 +135,81 @@ class BasicGetBySchemeOperations(
         if is_model:
             return model
 
+        return self.out_scheme.model_validate(model)
+
+    @overload
+    async def get_by_query(
+        self,
+        session: AsyncSession,
+        query: Select[Any],
+    ) -> M: ...
+
+    @overload
+    async def get_by_query(
+        self,
+        session: AsyncSession,
+        query: Select[Any],
+        is_get_none: Literal[True],
+    ) -> Optional[M]: ...
+
+    @overload
+    async def get_by_query(
+        self,
+        session: AsyncSession,
+        query: Select[Any],
+        *,
+        is_model: Literal[False]
+    ) -> O: ...
+
+    @overload
+    async def get_by_query(
+        self,
+        session: AsyncSession,
+        query: Select[Any],
+        is_get_none: Literal[True],
+        is_model: Literal[False]
+    ) -> Optional[O]: ...
+
+    async def get_by_query(
+        self,
+
+        session: AsyncSession,
+
+        query: Select[Any],
+
+        is_get_none: bool = False,
+
+        is_model: bool = True,
+
+    ) -> Union[M, O, None]:
+        """Получение объекта по запросу
+
+        Args:
+            session (AsyncSession): Сессия
+            query (Select[Any]): Запрос
+            is_get_none (bool, optional): Возвращать ли None, если объект не найден. По умолчанию False
+            is_model (bool, optional): Возвращать ли объект модели. По умолчанию True
+
+        Returns:
+            Union[M, O, None]: Объект
+        """
+
+        if is_get_none:
+            model = await super().get_by_query(
+                session=session,
+                query=query,
+                is_get_none=True
+            )
+
+            if model is None:
+                return None
+
+        else:
+            model = await super().get_by_query(
+                session=session,
+                query=query,
+            )
+
+        if is_model:
+            return model
         return self.out_scheme.model_validate(model)
