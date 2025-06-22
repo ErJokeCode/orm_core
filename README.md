@@ -1,7 +1,7 @@
 # ORM Manager Factory
 
-<!-- [![PyPI Version](https://img.shields.io/pypi/v/orm-manager-factory.svg)](https://pypi.org/project/orm-manager-factory/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT) -->
+<!-- [![PyPI Version](https://img.shields.io/pypi/v/orm-manager-factory.svg)](https://pypi.org/project/orm-manager-factory/) -->
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Универсальная фабрика для создания менеджеров работы с SQLAlchemy ORM, поддерживающая:
 - Базовые CRUD-операции
@@ -82,6 +82,11 @@ app = FastAPI()
 app.include_router(db.user.router)
 ```
 
-<!-- ## 📄 Лицензия
+## 📄 Лицензия
 
-MIT License. См. файл [LICENSE](LICENSE). -->
+MIT License. См. файл [LICENSE](LICENSE).
+
+## 🧑‍💻 Об авторе
+
+Соловьёв Эрик - [GitHub](https://github.com/ErJokeCode)
+
