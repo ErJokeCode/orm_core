@@ -1,6 +1,6 @@
 # ORM Manager Factory
 
-<!-- [![PyPI Version](https://img.shields.io/pypi/v/orm-manager-factory.svg)](https://pypi.org/project/orm-manager-factory/) -->
+[![PyPI Version](https://img.shields.io/pypi/v/orm-manager-factory.svg)](https://pypi.org/project/orm-core/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Универсальная фабрика для создания менеджеров работы с SQLAlchemy ORM, поддерживающая:
@@ -40,7 +40,11 @@ class YourClientDB(ClientDB):
 db = YourClientDB("postgresql+asyncpg://user:pass@localhost:5432/db")
 
 # Использование
+await db.init()
+
 await db.user.add(...)
+await db.user.get_by(...)
+await db.user.get_by_query(...)
 await db.user.get_all(...)
 await db.user.delete(...)
 ```
@@ -58,8 +62,12 @@ class YourClientDB(ClientDB):
             UserOutSchema
         )
 
-# Автоматическая валидация данных
-await db.user.add(create_schema_instance)
+# Автоматическая валидация входных/выходных данных в Pydantic схемы
+await db.init()
+
+await db.user.add(...)
+...
+await db.user.delete(...)
 ```
 
 ### 3. С генерацией FastAPI роутеров
@@ -78,13 +86,23 @@ class YourClientDB(ClientDB):
             tags=["Users"]
         )
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await db_client.init_db()
+    yield
+
+app = FastAPI(
+    lifespan=lifespan,
+)
 app.include_router(db.user.router)
 ```
 
 ## 📄 Лицензия
 
 MIT License. См. файл [LICENSE](LICENSE).
+
+## 🤝 Вклад
+Приветствуются pull requests и issue reports.
 
 ## 🧑‍💻 Об авторе
 
