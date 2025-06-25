@@ -23,7 +23,7 @@ pip install orm_core
 Автоматическая валидация входных/выходных данных.
 
 ### 3. Менеджер с автогенерацией FastAPI роутеров
-Полноценное CRUD API из коробки.
+Полноценное CRUD API из коробки
 
 ## 🔧 Использование
 
@@ -70,12 +70,21 @@ await db.user.add(...)
 await db.user.delete(...)
 ```
 
-### 3. С генерацией FastAPI роутеров
+### 3. С генерацией FastAPI роутеров 
 
 ```python
 class YourClientDB(ClientDB):
     def __init__(self, async_url: str):
         super().__init__(async_url)
+
+        # Автоматическая генерация Pydantic схем для swagger
+        self.group = create_orm_manager(
+            Group, 
+            session_factory=self.session_factory,
+            api=True
+        )
+
+        # Можно использовать кастомные схемы
         self.user = create_orm_manager(
             User,
             UserCreateSchema,
@@ -85,6 +94,7 @@ class YourClientDB(ClientDB):
             api=True,
             tags=["Users"]
         )
+        
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -95,6 +105,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.include_router(db.user.router)
+app.include_router(db.group.router)
 ```
 
 ## 📄 Лицензия

@@ -167,7 +167,9 @@ def create_orm_manager(
                     User
                     InputScheme,
                     EditScheme,
-                    OutputScheme
+                    OutputScheme, 
+                    api=True, 
+                    session_factory=self.session_factory
                 )
 
         db_client = YourClientDB(
@@ -189,19 +191,67 @@ def create_orm_manager(
     ...
 
 
-# @overload
-# def orm_factory(
-#     model: type[M],
-#     *,
-#     session_factory: async_sessionmaker[AsyncSession],
-#     api: Literal[True],
-#     search_fields: Optional[list[str]] = None,
-#     return_get_all: Literal["pagination", "list"] = "pagination",
-#     prefix: Optional[str] = None,
-#     tags: Optional[list[Union[str, Enum]]] = None,
-#     dependencies: Optional[Sequence[params.Depends]] = None,
-# ) -> ManagerApiModel[M]:
-#     ...
+@overload
+def create_orm_manager(
+    model: type[M],
+    *,
+    session_factory: async_sessionmaker[AsyncSession],
+    api: Literal[True],
+    search_fields: Optional[list[str]] = None,
+    return_get_all: Literal["pagination", "list"] = "pagination",
+    prefix: Optional[str] = None,
+    tags: Optional[list[Union[str, Enum]]] = None,
+    dependencies: Optional[Sequence[params.Depends]] = None,
+) -> ManagerApiModel[M]:
+    """Фабрика для создания менеджера для работы с моделями и автогенерация CRUD API для работы с таблицами
+
+    Args:
+        model (type[M]): Модель для работы
+        session_factory (async_sessionmaker[AsyncSession]): Фабрика сессий для работы с БД
+        api (Literal[True]): Флаг для автогенерации API
+        search_fields (Optional[list[str]], optional): Поля по которым будет проводиться поиск при получении списка. По умолчанию None.
+        return_get_all (Literal[&quot;pagination&quot;, &quot;list&quot;], optional): При получении списка будет получаться с пагинацией или список. По умолчанию с пагинацией (to "pagination").
+        prefix (Optional[str], optional): Кастомный путь для router. По умолчанию создается автоматически по названию модели.
+        tags (Optional[list[Union[str, Enum]]], optional): Название router в Swagger. По умолчанию название модели.
+        dependencies (Optional[Sequence[params.Depends]], optional): Зависимости. По умелчанию их нет.
+
+    Returns:
+        ManagerApiModel[M]: Менеджер для работы с моделями и автогенерацией CRUD API
+
+
+    Example:
+
+        from orm_core import ClientDB
+        from orm_core import create_factory_orm
+
+        class YourClientDB(ClientDB):
+            def __init__(self, async_url: str):
+                super().__init__(async_url)
+
+                self.user = create_factory_orm(
+                    User,
+                    api=True, 
+                    session_factory=self.session_factory
+                )
+
+        db_client = YourClientDB(
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
+        )
+
+        # Использование ORM
+        await db_client.user.add(...)
+        await db_client.user.edit(...)
+        await db_client.user.get_all(...)
+        await db_client.user.get_by(...)
+        await db_client.user.get_by_query(...)
+        await db_client.user.delete(...)
+
+        # Создание API
+        app = FastAPI()
+        app.include_router(db_client.user.router) 
+    """
+
+    ...
 
 
 def create_orm_manager(

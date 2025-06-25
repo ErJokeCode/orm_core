@@ -1,6 +1,6 @@
 import logging
 from typing import Any, Generic, TypeVar
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Column
 from sqlalchemy.orm import class_mapper
 
 from .add import BasicModelAddOperations
@@ -54,13 +54,16 @@ class ManagerModel(
         ]
 
         mapper = class_mapper(self.model)
+        self.mapper = mapper
         self.attrs_rel: dict[str, str] = {}
 
         self.type_cols: dict[str, Any] = {}
+        self.info_cols: list[Column[Any]] = []
         for attr in mapper.columns:
             self.type_cols[attr.key] = attr.type.python_type
+            self.info_cols.append(attr)
 
-        for attr in mapper.relationships:
+        for attr in mapper.relationships:  # type: ignore
             self.attrs_rel[attr.key] = attr.direction.name
 
         self.loads: dict[str, str] = {}

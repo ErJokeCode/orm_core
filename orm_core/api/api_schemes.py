@@ -2,7 +2,7 @@ from enum import Enum
 import inspect
 import logging
 from typing import Annotated, Any, Generic, Literal, Optional, Sequence, TypeVar, Union
-from fastapi import APIRouter, Body, Depends, params
+from fastapi import APIRouter, Depends, params
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -172,16 +172,35 @@ class ManagerApiModelWithSchemes(
     def __create_func_add(self):
         add_schema = self.add_scheme
 
-        async def add(
-            session: Annotated[AsyncSession, Depends(self.get_db_session)],
-            data: Any = Body(json_schema_extra=add_schema.model_json_schema())
-        ) -> O:
+        params = [
+            inspect.Parameter(
+                name="session",
+                kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[AsyncSession,
+                                     Depends(self.get_db_session)],
+            ),
+            inspect.Parameter(
+                name="data",
+                kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=add_schema,
+            ),
+        ]
+
+        signature = inspect.Signature(params)
+
+        async def add(*args: Any, **kwargs: Any) -> O:
+            bound_args = signature.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+
+            session = bound_args.arguments["session"]
+            data = bound_args.arguments["data"]
             return await self.add(
                 session=session,
                 data=data,
                 is_model=False
             )
 
+        add.__signature__ = signature  # type: ignore
         return add
 
     def __create_get_all(self):

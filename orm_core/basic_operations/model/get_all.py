@@ -141,6 +141,10 @@ class BasicModelGetAllOperations(Generic[M]):
                     column = getattr(self.model, field)
                     search_conditions.append(  # type: ignore
                         column.ilike(f"%{search}%"))  # type: ignore
+                else:
+                    raise HTTPException(
+                        status_code=400, detail=f"Поле {field} для поиска не найдено"
+                    )
 
             if search_conditions:
                 query_select = query_select.filter(
@@ -149,29 +153,46 @@ class BasicModelGetAllOperations(Generic[M]):
         if loads:
             for key, val in loads.items():
                 if val == "s":
-                    query_select = query_select.options(
-                        selectinload(getattr(self.model, key))
-                    )
+                    if hasattr(self.model, key):
+                        query_select = query_select.options(
+                            selectinload(getattr(self.model, key))
+                        )
+                    else:
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Поле {key} для загрузки не найдено"
+                        )
                 elif val == "j":
-                    query_select = query_select.options(
-                        joinedload(getattr(self.model, key))
-                    )
+                    if hasattr(self.model, key):
+                        query_select = query_select.options(
+                            joinedload(getattr(self.model, key))
+                        )
+                    else:
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Поле {key} для загрузки не найдено"
+                        )
 
         if kwargs:
             query_select = query_select.filter_by(**kwargs)
 
         if page < 1:
             raise HTTPException(
-                status_code=400, detail="Page number must be greater than 0"
+                status_code=400, detail="Номер страницы должен быть больше 0"
             )
 
         q_total_record = query_select
 
         if sort_by:
-            query_select = query_select.order_by(
-                func_desc(getattr(self.model, sort_by)) if desc_int else asc(
-                    getattr(self.model, sort_by))
-            )
+            if hasattr(self.model, sort_by):
+                query_select = query_select.order_by(
+                    func_desc(getattr(self.model, sort_by)) if desc_int else asc(
+                        getattr(self.model, sort_by))
+                )
+            else:
+                raise HTTPException(
+                    status_code=400, detail=f"Поле {sort_by} для сортировки не найдено"
+                )
 
         query_select = query_select.offset((page - 1) * limit)
         if limit != -1:

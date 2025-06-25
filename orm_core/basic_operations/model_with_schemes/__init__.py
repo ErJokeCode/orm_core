@@ -75,12 +75,12 @@ class ManagerModelSchemes(
         for attr in mapper.columns:
             self.type_cols[attr.key] = attr.type.python_type
 
-        for attr in mapper.relationships:
+        for attr in mapper.relationships:  # type: ignore
             self.attrs_rel[attr.key] = attr.direction.name
 
         schema = self.out_scheme.model_json_schema()
         self.attrs_out_scheme: Optional[list[str]] = schema.get(
-            "required")
+            "properties", {}).keys()
         if self.attrs_out_scheme is None:
             self.attrs_out_scheme = []
 

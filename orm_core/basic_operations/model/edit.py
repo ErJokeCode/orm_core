@@ -136,6 +136,19 @@ class BasicModelEditOperations(Generic[M]):
 
         stmt = select(self.model).filter_by(**pks)
 
+        r = await session.execute(stmt)
+        model = r.scalars().first()
+
+        if model is None:
+            raise HTTPException(
+                status_code=404, detail=f"{self.model.__name__} not found")
+
+        for key, value in edit_item.items():
+            if value is not None:
+                setattr(model, key, value)
+
+        await session.flush()
+
         if loads is not None:
             for key, val in loads.items():
                 if val == "s":
@@ -149,16 +162,6 @@ class BasicModelEditOperations(Generic[M]):
 
         r = await session.execute(stmt)
         model = r.scalars().first()
-
-        if model is None:
-            raise HTTPException(
-                status_code=404, detail=f"{self.model.__name__} not found")
-
-        for key, value in edit_item.items():
-            if value is not None:
-                setattr(model, key, value)
-
-        await session.flush()
 
         if not is_return:
             return None
