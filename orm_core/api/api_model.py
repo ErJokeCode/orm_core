@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any,  Generic, Literal, Optional, Sequence, TypeVar, Union
+from typing import Any, AsyncGenerator,  Generic, Literal, Optional, Sequence, TypeVar, Union
 from fastapi import APIRouter, params
 from pydantic import BaseModel, ConfigDict, create_model
 from sqlalchemy import Column
@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-from .basic_api import BasicApi
 from ..basic_operations.model import ManagerModel
 
 from .api_schemes import ManagerApiModelWithSchemes
@@ -21,7 +20,6 @@ M = TypeVar('M')
 
 class ManagerApiModel(
     ManagerModel[M],
-    BasicApi,
     Generic[M],
 ):
     """Менеджер для работы со схемами, моделями и автогенерацией API, только используя модель
@@ -64,19 +62,19 @@ class ManagerApiModel(
             model=model
         )
 
-        add_scheme = create_model(
+        self.add_scheme = create_model(
             f"Add{self.model.__name__}DTO",
             __base__=BaseModel,
             **self.get_fileds_for_add(self.mapper.columns)
         )
 
-        edit_scheme = create_model(
+        self.edit_scheme = create_model(
             f"Edit{self.model.__name__}DTO",
             __base__=BaseModel,
             **self.get_fileds_for_edit(self.mapper.columns)
         )
 
-        out_scheme = create_model(
+        self.out_scheme = create_model(
             f"Out{self.model.__name__}DTO",
             __base__=BaseModel,
             __config__=ConfigDict(from_attributes=True),
@@ -85,9 +83,9 @@ class ManagerApiModel(
 
         self.manager_api = ManagerApiModelWithSchemes(
             model=model,
-            add_scheme=add_scheme,
-            edit_scheme=edit_scheme,
-            out_scheme=out_scheme,
+            add_scheme=self.add_scheme,
+            edit_scheme=self.edit_scheme,
+            out_scheme=self.out_scheme,
             session_factory=session_factory,
             search_fields=search_fields,
             return_get_all=return_get_all,
@@ -96,9 +94,32 @@ class ManagerApiModel(
             dependencies=dependencies
         )
 
+    async def get_db_session(self) -> AsyncGenerator[AsyncSession, None]:
+        return self.manager_api.get_db_session()
+
     @property
     def router(self) -> APIRouter:
         return self.manager_api.router
+
+    @property
+    def prefix(self) -> Optional[str]:
+        return self.manager_api.prefix
+
+    @property
+    def tags(self) -> Optional[list[Union[str, Enum]]]:
+        return self.manager_api.tags
+
+    @property
+    def dependencies(self) -> Optional[Sequence[params.Depends]]:
+        return self.manager_api.dependencies
+
+    @property
+    def search_fields(self) -> Optional[list[str]]:
+        return self.manager_api.search_fields
+
+    @property
+    def return_get_all(self) -> Literal["pagination", "list"]:
+        return self.manager_api.return_get_all
 
     def get_fileds_for_add(self, columns: ReadOnlyColumnCollection[str, Column[Any]]) -> dict[str, Any]:
         fields: dict[str, Any] = {}

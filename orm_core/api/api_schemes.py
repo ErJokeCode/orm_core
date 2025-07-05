@@ -83,7 +83,7 @@ class ManagerApiModelWithSchemes(
         prefix = prefix if prefix else f"/{self.model.__name__.lower()}"
         tags = tags if tags else [self.model.__name__]
 
-        self.__router = APIRouter(
+        router = APIRouter(
             prefix=prefix,
             tags=tags,
             dependencies=dependencies,
@@ -91,7 +91,7 @@ class ManagerApiModelWithSchemes(
 
         BasicApi.__init__(
             self=self,
-            router=self.__router,
+            router=router,
             session_factory=session_factory,
             search_fields=search_fields,
             return_get_all=return_get_all,
@@ -116,7 +116,7 @@ class ManagerApiModelWithSchemes(
         for pk in self.pks:
             path += "/{" + pk + "}"
 
-        self.__router.add_api_route(
+        self.router.add_api_route(
             path=path,
             endpoint=self.__create_func_get_by(),
             methods=["GET"],
@@ -162,7 +162,7 @@ class ManagerApiModelWithSchemes(
         return get_by
 
     def __create_add(self):
-        self.__router.add_api_route(
+        self.router.add_api_route(
             path="",
             endpoint=self.__create_func_add(),
             methods=["POST"],
@@ -204,12 +204,20 @@ class ManagerApiModelWithSchemes(
         return add
 
     def __create_get_all(self):
-        self.__router.add_api_route(
-            path="/all",
-            endpoint=self.__create_func_get_all(),
-            methods=["GET"],
-            response_model=ListDTO[self.out_scheme]
-        )
+        if self.return_get_all == "pagination":
+            self.router.add_api_route(
+                path="/all",
+                endpoint=self.__create_func_get_all(),
+                methods=["GET"],
+                response_model=ListDTO[self.out_scheme]
+            )
+        else:
+            self.router.add_api_route(
+                path="/all",
+                endpoint=self.__create_func_get_all(),
+                methods=["GET"],
+                response_model=list[self.out_scheme]
+            )
 
     def __create_func_get_all(self):
 
@@ -221,6 +229,20 @@ class ManagerApiModelWithSchemes(
             page: int = 1,
             limit: int = -1,
         ):
+            if self.return_get_all == "pagination":
+                return await self.get_all(
+                    session=session,
+                    search=search,
+                    search_fields=self.search_fields,
+                    loads=self.loads,
+                    sort_by=sort_by,
+                    desc=desc,
+                    page=page,
+                    limit=limit,
+                    is_model=False,
+                    is_pagination=True
+                )
+
             return await self.get_all(
                 session=session,
                 search=search,
@@ -231,7 +253,7 @@ class ManagerApiModelWithSchemes(
                 page=page,
                 limit=limit,
                 is_model=False,
-                is_pagination=True
+                is_pagination=False
             )
 
         return get_all
@@ -243,7 +265,7 @@ class ManagerApiModelWithSchemes(
         for pk in self.pks:
             path += "/{" + pk + "}"
 
-        self.__router.add_api_route(
+        self.router.add_api_route(
             path=path,
             endpoint=self.__create_func_edit(),
             methods=["PATCH"],
@@ -305,7 +327,7 @@ class ManagerApiModelWithSchemes(
         for pk in self.pks:
             path += "/{" + pk + "}"
 
-        self.__router.add_api_route(
+        self.router.add_api_route(
             path=path,
             endpoint=self.__create_func_delete(),
             methods=["DELETE"],

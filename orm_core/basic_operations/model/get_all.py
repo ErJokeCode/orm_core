@@ -1,7 +1,8 @@
 import logging
 from typing import Any, Literal, Optional, Sequence, TypeVar, Generic, Union, overload
 from fastapi import HTTPException
-from sqlalchemy import Select, asc,  desc as func_desc, func, or_, select
+from sqlalchemy import Select, asc,  desc as func_desc, func, or_, select, cast
+from sqlalchemy.types import String
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 
@@ -140,7 +141,8 @@ class BasicModelGetAllOperations(Generic[M]):
                 if hasattr(self.model, field):
                     column = getattr(self.model, field)
                     search_conditions.append(  # type: ignore
-                        column.ilike(f"%{search}%"))  # type: ignore
+                        # type: ignore
+                        cast(column, String).ilike(f"%{search}%"))
                 else:
                     raise HTTPException(
                         status_code=400, detail=f"Поле {field} для поиска не найдено"

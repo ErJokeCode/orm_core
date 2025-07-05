@@ -36,17 +36,17 @@ class ClientDB:
         Args:
             async_url (str): Асинхронная строка подключения
         """
-        self.__engine = create_async_engine(
+        self.engine = create_async_engine(
             url=async_url
         )
 
-        self.session_factory = async_sessionmaker(self.__engine)
+        self.session_factory = async_sessionmaker(self.engine)
 
     async def init_db(self):
         """
         Инициализация БД
         """
-        async with self.__engine.begin() as conn:
+        async with self.engine.begin() as conn:
             await conn.run_sync(
                 lambda sync_conn: Base.metadata.create_all(
                     sync_conn, checkfirst=True)
@@ -56,5 +56,5 @@ class ClientDB:
         """
         Удаление всех таблиц
         """
-        async with self.__engine.begin() as conn:
+        async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)

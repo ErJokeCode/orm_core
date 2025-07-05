@@ -30,13 +30,13 @@ class BasicApi:
 
     ) -> None:
 
-        self.__router = router
+        self.router = router
         self.__session_factory = session_factory
         self.search_fields = search_fields
-        self.__return_get_all = return_get_all
-        self.__prefix = prefix
-        self.__tags = tags
-        self.__dependencies = dependencies
+        self.return_get_all: Literal["pagination", "list"] = return_get_all
+        self.prefix = prefix
+        self.tags = tags
+        self.dependencies = dependencies
 
     async def get_db_session(self) -> AsyncGenerator[AsyncSession, None]:
         async with self.__session_factory() as session:
@@ -80,7 +80,3 @@ class BasicApi:
                 else:  # Если одиночный объект
                     data[rel.key] = self.model_to_dict(related_obj)
         return data
-
-    @property
-    def router(self) -> APIRouter:
-        return self.__router
