@@ -27,14 +27,6 @@ class ManagerModel(
 ):
     """
     Менеджер для работы с моделями
-
-    Args:
-        BasicModelAddOperations (_type_): Работа с добавлением
-        BasicModelGetAllOperations (_type_): Работа с получением всех объектов
-        BasicModelEditOperations (_type_): Работа с редактированием и получением по id и полям
-        BasicModelDeleteOperations (_type_): Работа с удалением
-        BasicModelGetByOperations (_type_): Работа с получением по полям
-        Generic (_type_): _type_
     """
 
     def __init__(self, model: type[M]) -> None:

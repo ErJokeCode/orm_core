@@ -1,0 +1,32 @@
+site_name: ORM Manager Factory
+theme: material
+
+plugins:
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_root_heading: true
+            show_overloads: true
+            show_source: true
+            line_length: 80
+            show_signature: true
+
+            show_private: true
+            docstring_style: google
+
+nav:
+  - Главная: index.md
+  - Документация:
+      - "Базовый клиент БД": db.md
+      - "Работа с таблицами": tables.md
+      - "Базовые операции":
+          - "Базовые операции с моделями": ./basic_operations/model.md
+          - "Базовые операции с моделями и схемами": ./basic_operations/model_with_schemes.md
+      - "Создание API": api.md
+      - "Базовые схемы": base_schemes.md
+
+extra:
+  python_module_paths:
+    - .

@@ -26,12 +26,7 @@ class ManagerApiModelWithSchemes(
     BasicApi,
     Generic[M, A, E, O]
 ):
-    """Менеджер для работы со схемами, моделями и автогенерацией API
-
-    Args:
-        ManagerModelSchemes (_type_): Менеджер для работы со схемами, моделями
-        BasicApi (_type_): Базовое создание API
-    """
+    """Менеджер для работы со схемами, моделями и автогенерацией API"""
 
     def __init__(
         self,

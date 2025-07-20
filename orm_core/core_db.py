@@ -17,7 +17,7 @@ class ClientDB:
         init_db(): Инициализация БД
         drop_tables(): Удаление всех таблиц
 
-    Example:
+    Пример:
 
         from orm_core import ClientDB
 

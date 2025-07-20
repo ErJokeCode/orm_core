@@ -1,8 +1,5 @@
 # ORM Manager Factory
 
-[![PyPI Version](https://img.shields.io/pypi/v/orm-manager-factory.svg)](https://pypi.org/project/orm-core/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
 Универсальная фабрика для создания менеджеров работы с SQLAlchemy ORM, поддерживающая:
 
 - Базовые CRUD-операции
@@ -111,14 +108,6 @@ app = FastAPI(
 app.include_router(db.user.router)
 app.include_router(db.group.router)
 ```
-
-## 📄 Лицензия
-
-MIT License. См. файл [LICENSE](LICENSE).
-
-## 🤝 Вклад
-
-Приветствуются pull requests и issue reports.
 
 ## 🧑‍💻 Об авторе
 

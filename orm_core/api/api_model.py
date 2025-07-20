@@ -23,10 +23,6 @@ class ManagerApiModel(
     Generic[M],
 ):
     """Менеджер для работы со схемами, моделями и автогенерацией API, только используя модель
-
-    Args:
-        ManagerModel (_type_): Базовый менеджер для работы с моделями
-        BasicApi (_type_): Базовое создание API
     """
 
     def __init__(

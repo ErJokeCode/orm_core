@@ -36,25 +36,25 @@ def create_orm_manager(
 
     Example:
 
-    from orm_core import ClientDB
-    from orm_core import create_factory_orm
+        from orm_core import ClientDB
+        from orm_core import create_factory_orm
 
-    class YourClientDB(ClientDB):
-        def __init__(self, async_url: str):
-            super().__init__(async_url)
+        class YourClientDB(ClientDB):
+            def __init__(self, async_url: str):
+                super().__init__(async_url)
 
-            self.user = create_factory_orm(User)
+                self.user = create_factory_orm(User)
 
-    db_client = YourClientDB(
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
-    )
+        db_client = YourClientDB(
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
+        )
 
-    await db_client.user.add(...)
-    await db_client.user.edit(...)
-    await db_client.user.get_all(...)
-    await db_client.user.get_by(...)
-    await db_client.user.get_by_query(...)
-    await db_client.user.delete(...)
+        await db_client.user.add(...)
+        await db_client.user.edit(...)
+        await db_client.user.get_all(...)
+        await db_client.user.get_by(...)
+        await db_client.user.get_by_query(...)
+        await db_client.user.delete(...)
     """
     ...
 
@@ -279,6 +279,83 @@ def create_orm_manager(
     dependencies: Optional[Sequence[params.Depends]] = None,
 
 ) -> Union[ManagerModel[M], ManagerModelSchemes[M, A, E, O], ManagerApiModelWithSchemes[M, A, E, O], ManagerApiModel[M]]:
+    """Фабрика для создания менеджеров для работы с моделями и автогенерация CRUD API для работы с таблицами
+
+    Args:
+        model (type[M]): Модель для работы
+        add_scheme (Optional[type[A]], optional): Схема добавления. По умолчанию None.
+        edit_scheme (Optional[type[E]], optional): Схема редактирования. По умолчанию None.
+        out_scheme (Optional[type[O]], optional): Схема вывода. По умолчанию None.
+        session_factory (Optional[async_sessionmaker[AsyncSession]], optional): Фабрика сессий для работы с БД. По умолчанию None.
+        api (bool, optional): Флаг для автогенерации API. По умолчанию False.
+        search_fields (Optional[list[str]], optional): Поля по которым будет проводиться поиск при получении списка. По умолчанию None.
+        return_get_all: Optional[Literal[&quot;pagination&quot;, &quot;list&quot;]]) = None: При получении списка будет получаться с пагинацией или список. По умолчанию с пагинацией.,
+        prefix (Optional[str], optional): Кастомный путь для router. По умолчанию создается автоматически по названию модели.
+        tags (Optional[list[Union[str, Enum]]], optional): Название router в Swagger. По умолчанию название модели.
+        dependencies (Optional[Sequence[params.Depends]], optional): Зависимости. По умолчанию их нет.
+
+    Returns:
+        ManagerModel[M]: Менеджер для работы с моделями
+        ManagerModelSchemes[M, A, E, O]: Менеджер для работы с моделями и схемами
+        ManagerApiModelWithSchemes[M, A, E, O]: Менеджер для работы с моделями и автогенерацией CRUD API
+        ManagerApiModel[M]: Менеджер для работы с моделями и автогенерацией CRUD API
+
+    Пример: 
+
+
+        from orm_core import ClientDB
+        from orm_core import create_factory_orm
+
+        class YourClientDB(ClientDB):
+            def __init__(self, async_url: str):
+                super().__init__(async_url)
+
+                # ManagerModel
+                self.user = create_factory_orm(User)
+
+                # ManagerModelSchemes
+                self.user2 = create_factory_orm(
+                    User
+                    InputScheme,
+                    EditScheme,
+                    OutputScheme
+                )
+
+                # ManagerApiModelWithSchemes
+                self.user3 = create_factory_orm(
+                    User
+                    InputScheme,
+                    EditScheme,
+                    OutputScheme, 
+                    api=True, 
+                    session_factory=self.session_factory
+                )
+
+                # ManagerApiModel
+                self.user4 = create_factory_orm(
+                    User,
+                    api=True, 
+                    session_factory=self.session_factory
+                )
+
+
+
+        db_client = YourClientDB(
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
+        )
+
+        await db_client.user.add(...)
+        await db_client.user.edit(...)
+        await db_client.user.get_all(...)
+        await db_client.user.get_by(...)
+        await db_client.user.get_by_query(...)
+        await db_client.user.delete(...)
+
+        # Создание API
+        app = FastAPI()
+        app.include_router(db_client.user3.router) 
+        app.include_router(db_client.user4.router) 
+    """
 
     if api:
         if add_scheme is not None and edit_scheme is not None and out_scheme is not None and session_factory is not None:
