@@ -7,6 +7,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,12 +26,14 @@ jobs:
           pip install mkdocs mkdocs-material mkdocstrings[python]
 
       - name: Build docs
-        run: mkdocs build --site-dir public
+        run: |
+          mkdocs build --verbose --site-dir public
+          ls -la public  # Проверка содержимого
 
-      - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
+      - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
+          force_orphan: true
           keep_files: false
