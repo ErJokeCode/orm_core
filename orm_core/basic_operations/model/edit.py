@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 _log = logging.getLogger(__name__)
 
 
-M = TypeVar('M')
+M = TypeVar('M', bound=Any)
 
 
 class BasicModelEditOperations(Generic[M]):
@@ -24,51 +24,11 @@ class BasicModelEditOperations(Generic[M]):
 
         edit_item: dict[str, Any],
 
-        loads: Optional[dict[str, str]] = None,
-
-        is_return: Literal[False] = False,
-
-        return_query: Optional[Select[Any]] = None,
-
-        is_get_none: bool = True,
-
-        **pks: Any
-
-    ) -> None: ...
-
-    @overload
-    async def edit(
-        self,
-
-        session: AsyncSession,
-
-        edit_item: dict[str, Any],
-
-        loads: Optional[dict[str, str]] = None,
-
         is_return: Literal[True] = True,
 
-        return_query: Optional[Select[Any]] = None,
-
-        is_get_none: Literal[False] = False,
-
-        **pks: Any
-
-    ) -> M: ...
-
-    @overload
-    async def edit(
-        self,
-
-        session: AsyncSession,
-
-        edit_item: dict[str, Any],
-
         loads: Optional[dict[str, str]] = None,
 
-        is_return: Literal[True] = True,
-
-        return_query: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         is_get_none: Literal[True] = True,
 
@@ -84,17 +44,33 @@ class BasicModelEditOperations(Generic[M]):
 
         edit_item: dict[str, Any],
 
-        loads: Optional[dict[str, str]],
+        is_return: Literal[True] = True,
 
-        is_return: bool,
+        loads: Optional[dict[str, str]] = None,
 
-        return_query: Optional[Select[Any]],
+        query: Optional[Select[Any]] = None,
 
-        is_get_none: bool,
+        is_get_none: Literal[False] = False,
 
         **pks: Any
 
-    ) -> Optional[M]: ...
+    ) -> M: ...
+
+    @overload
+    async def edit(
+        self,
+
+        session: AsyncSession,
+
+        edit_item: dict[str, Any],
+
+        is_return: Literal[False] = False,
+
+        loads: Optional[dict[str, str]] = None,
+
+        **pks: Any
+
+    ) -> None: ...
 
     async def edit(
         self,
@@ -103,11 +79,11 @@ class BasicModelEditOperations(Generic[M]):
 
         edit_item: dict[str, Any],
 
-        loads: Optional[dict[str, str]] = None,
-
         is_return: bool = True,
 
-        return_query: Optional[Select[Any]] = None,
+        loads: Optional[dict[str, str]] = None,
+
+        query: Optional[Select[M]] = None,
 
         is_get_none: bool = True,
 
@@ -121,7 +97,7 @@ class BasicModelEditOperations(Generic[M]):
             edit_item (dict[str, Any]): Данные для редактирования
             loads (Optional[dict[str, str]], optional): Список полей для загрузки связанных объектов. Defaults to None.
             is_return (bool, optional): Возвращать ли объект. Defaults to True.
-            return_query (Optional[Select[Any]], optional): Кастомный запрос для возврата. Defaults to None.
+            query (Optional[Select[Any]], optional): Кастомный запрос для возврата. Defaults to None.
             is_get_none (bool, optional): Возвращать ли None, если объект не найден. Defaults to True.
             **pks (Any): Первыичные ключи
 
@@ -149,30 +125,28 @@ class BasicModelEditOperations(Generic[M]):
 
         await session.flush()
 
-        if loads is not None:
-            for key, val in loads.items():
-                if val == "s":
-                    stmt = stmt.options(
-                        selectinload(getattr(self.model, key))
-                    )
-                elif val == "j":
-                    stmt = stmt.options(
-                        joinedload(getattr(self.model, key))
-                    )
-
-        r = await session.execute(stmt)
-        model = r.scalars().first()
-
         if not is_return:
             return None
 
-        if return_query is None:
-            return model
+        if query is None:
+            if loads is not None:
+                for key, val in loads.items():
+                    if val == "s":
+                        stmt = stmt.options(
+                            selectinload(getattr(self.model, key))
+                        )
+                    elif val == "j":
+                        stmt = stmt.options(
+                            joinedload(getattr(self.model, key))
+                        )
 
-        stmt = return_query.filter_by(**pks)
+            r = await session.execute(stmt)
+            model = r.scalars().first()
+        else:
+            stmt = query.filter_by(**pks)
 
-        r = await session.execute(stmt)
-        model = r.scalars().first()
+            r = await session.execute(stmt)
+            model = r.scalars().first()
 
         if model is not None:
             return model

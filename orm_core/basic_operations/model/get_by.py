@@ -22,9 +22,9 @@ class BasicModelGetByOperations(Generic[M]):
         *,
         session: AsyncSession,
         loads: Optional[dict[str, str]] = None,
-        is_get_none: Literal[True],
-        **kwargs: Any
-    ) -> Optional[M]: ...
+        is_get_none: Literal[False] = False,
+        **filters: Any
+    ) -> M: ...
 
     @overload
     async def get_by(
@@ -32,16 +32,16 @@ class BasicModelGetByOperations(Generic[M]):
         *,
         session: AsyncSession,
         loads: Optional[dict[str, str]] = None,
-        is_get_none: Literal[False] = False,
-        **kwargs: Any
-    ) -> M: ...
+        is_get_none: Literal[True],
+        **filters: Any
+    ) -> Optional[M]: ...
 
     async def get_by(
         self,
         session: AsyncSession,
         loads: Optional[dict[str, str]] = None,
         is_get_none: bool = False,
-        **kwargs: Any
+        **filters: Any
     ) -> Optional[M]:
         """Получение объекта по полям
 
@@ -65,7 +65,7 @@ class BasicModelGetByOperations(Generic[M]):
         )
 
         query = query.filter_by(
-            **kwargs
+            **filters
         )
 
         if loads is not None:
@@ -95,6 +95,7 @@ class BasicModelGetByOperations(Generic[M]):
         self,
         session: AsyncSession,
         query: Select[Any],
+        is_get_none: Literal[False] = False
     ) -> M: ...
 
     @overload
@@ -102,7 +103,7 @@ class BasicModelGetByOperations(Generic[M]):
         self,
         session: AsyncSession,
         query: Select[Any],
-        is_get_none: Literal[True],
+        is_get_none: Literal[True] = True,
     ) -> Optional[M]: ...
 
     async def get_by_query(

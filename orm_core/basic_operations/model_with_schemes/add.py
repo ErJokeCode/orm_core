@@ -29,105 +29,76 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
     @overload
     async def add(
         self,
+
         *,
+
         session: AsyncSession,
+
         data: Union[A, M, dict[str, Any]],
+
+        is_return: bool,
+
+        is_model: bool,
+
+        loads: Optional[dict[str, str]],
+
+        query: Union[Select[Any], None]
+
+    ) -> Union[M, O, None]: ...
+
+    @overload
+    async def add(
+        self,
+
+        *,
+
+        session: AsyncSession,
+
+        data: Union[A, M, dict[str, Any]],
+
+        is_return: Literal[True] = True,
+
+        is_model: Literal[True] = True,
+
+        loads: Optional[dict[str, str]] = None,
+
+        query: Union[Select[Any], None] = None
+
     ) -> M: ...
 
     @overload
     async def add(
         self,
+
         *,
+
         session: AsyncSession,
+
         data: Union[A, M, dict[str, Any]],
-        loads: dict[str, str]
-    ) -> M:
-        ...
+
+        is_return: Literal[True] = True,
+
+        is_model: Literal[False] = False,
+
+        loads: Optional[dict[str, str]] = None,
+
+        query: Union[Select[Any], None] = None
+
+    ) -> O: ...
 
     @overload
     async def add(
         self,
-        *,
-        session: AsyncSession,
-        data: Union[A, M, dict[str, Any]],
-        return_query: Select[Any]
-    ) -> M: ...
 
-    @overload
-    async def add(
-        self,
         *,
+
         session: AsyncSession,
+
         data: Union[A, M, dict[str, Any]],
+
         is_return: Literal[False] = False
-    ) -> None:
-        ...
 
-    @overload
-    async def add(
-        self,
-        *,
-        session: AsyncSession,
-        data: Union[A, M, dict[str, Any]],
-        is_return: bool = True,
-        loads: Optional[dict[str, str]] = None,
-        return_query: Optional[Select[Any]] = None
-    ) -> Optional[M]:
-        ...
-
-    @overload
-    async def add(
-        self,
-        *,
-        session: AsyncSession,
-        data: Union[A, M, dict[str, Any]],
-        is_model: Literal[False]
-    ) -> O: ...
-
-    @overload
-    async def add(
-        self,
-        *,
-        session: AsyncSession,
-        data: Union[A, M, dict[str, Any]],
-        loads: dict[str, str],
-        is_model: Literal[False]
-    ) -> O:
-        ...
-
-    @overload
-    async def add(
-        self,
-        *,
-        session: AsyncSession,
-        data: Union[A, M, dict[str, Any]],
-        return_query: Select[Any],
-        is_model: Literal[False]
-    ) -> O: ...
-
-    @overload
-    async def add(
-        self,
-        *,
-        session: AsyncSession,
-        data: Union[A, M, dict[str, Any]],
-        is_return: Literal[False] = False,
-        is_model: Literal[False]
-    ) -> None:
-        ...
-
-    @overload
-    async def add(
-        self,
-        *,
-        session: AsyncSession,
-        data: Union[A, M, dict[str, Any]],
-        is_return: bool = True,
-        loads: Optional[dict[str, str]] = None,
-        return_query: Optional[Select[Any]] = None,
-        is_model: Literal[False]
-    ) -> Optional[O]:
-        ...
+    ) -> None: ...
 
     async def add(
         self,
@@ -144,7 +115,7 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
 
         loads: Optional[dict[str, str]] = None,
 
-        return_query: Union[Select[Any], None] = None
+        query: Union[Select[Any], None] = None
 
     ) -> Union[M, O, None]:
         """Создание объекта
@@ -155,7 +126,7 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
             is_return (bool, optional): Возвращать ли объект. Defaults to True.
             is_model (bool, optional): Возвращать ли модель. Defaults to True.
             loads (Optional[dict[str, str]], optional): Список полей для загрузки связанных объектов. Defaults to None.
-            return_query (Union[Select[Any], None], optional): Кастомный запрос для возврата. Defaults to None.
+            query (Union[Select[Any], None], optional): Кастомный запрос для возврата. Defaults to None.
 
         Returns:
             Union[M, O, None]: Добавленный объект
@@ -178,7 +149,7 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
             data=model,
             is_return=is_return,
             loads=loads,
-            return_query=return_query
+            query=query
         )
 
         if not is_return:

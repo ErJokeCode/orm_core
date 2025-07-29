@@ -19,11 +19,18 @@ class BasicModelAddOperations(Generic[M]):
     @overload
     async def add(
         self,
-        *,
+
         session: AsyncSession,
-        data: Union[M, dict[str, Any]]
-    ) -> M:
-        ...
+
+        data: Union[M, dict[str, Any]],
+
+        is_return: bool,
+
+        loads: Optional[dict[str, str]],
+
+        query: Optional[Select[Any]]
+
+    ) -> Optional[M]: ...
 
     @overload
     async def add(
@@ -31,17 +38,9 @@ class BasicModelAddOperations(Generic[M]):
         *,
         session: AsyncSession,
         data: Union[M, dict[str, Any]],
-        loads: dict[str, str]
-    ) -> M:
-        ...
-
-    @overload
-    async def add(
-        self,
-        *,
-        session: AsyncSession,
-        data: Union[M, dict[str, Any]],
-        return_query: Select[Any]
+        is_return: Literal[True] = True,
+        loads: Optional[dict[str, str]] = None,
+        query: Select[Any]
     ) -> M:
         ...
 
@@ -55,18 +54,6 @@ class BasicModelAddOperations(Generic[M]):
     ) -> None:
         ...
 
-    @overload
-    async def add(
-        self,
-        *,
-        session: AsyncSession,
-        data: Union[M, dict[str, Any]],
-        is_return: bool = True,
-        loads: Optional[dict[str, str]] = None,
-        return_query: Optional[Select[Any]] = None
-    ) -> Optional[M]:
-        ...
-
     async def add(
         self,
 
@@ -78,7 +65,7 @@ class BasicModelAddOperations(Generic[M]):
 
         loads: Optional[dict[str, str]] = None,
 
-        return_query: Optional[Select[Any]] = None
+        query: Optional[Select[Any]] = None
 
     ) -> Optional[M]:
         """Создание объекта в базе
@@ -88,7 +75,7 @@ class BasicModelAddOperations(Generic[M]):
             data (Union[M, dict]): Объект
             is_return (bool, optional): Возвращать ли объект после создания. По умолчанию возвращается.
             loads (Optional[dict[str, str]], optional): Список полей для дополнительной загрузки. По умолчанию не загружается.
-            return_query (Optional[Select], optional): Запрос для возврата объекта. (Какие-то дополнительные условия).
+            query (Optional[Select], optional): Запрос для возврата объекта. (Какие-то дополнительные условия).
 
         Raises:
             HTTPException: 500 - ошибка в базе при добавлении
@@ -99,7 +86,7 @@ class BasicModelAddOperations(Generic[M]):
 
         Example:
 
-            ### Для сложных случаев можно использовать свой return_query, по умолчанию он создается автоматически
+            ### Для сложных случаев можно использовать свой query, по умолчанию он создается автоматически
             return_user_add_query = select(
                 User
                 ).options(
@@ -118,7 +105,7 @@ class BasicModelAddOperations(Generic[M]):
                     "role": "j", # joinedload
                     "permissions": "s" # selectinload
                 },
-                return_query=return_user_add_query
+                query=return_user_add_query
             )
         """
 
@@ -135,10 +122,10 @@ class BasicModelAddOperations(Generic[M]):
         if not is_return:
             return None
 
-        if return_query is None:
+        if query is None:
             stmt = select(self.model)
         else:
-            stmt = return_query
+            stmt = query
 
         filter_pks = [
             getattr(self.model, pk) == getattr(model, pk)

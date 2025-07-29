@@ -33,7 +33,7 @@ class BasicModelGetAllOperations(Generic[M]):
 
         sort_by: Optional[str] = None,
 
-        query_select: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         desc: int = 0,
 
@@ -41,11 +41,11 @@ class BasicModelGetAllOperations(Generic[M]):
 
         limit: int = -1,
 
-        is_pagination: Literal[False] = False,
+        is_pagination: Literal[True] = True,
 
-        **kwargs: Any
+        **filters: Any
 
-    ) -> Sequence[M]:
+    ) -> ListDTO[M]:
         ...
 
     @overload
@@ -62,7 +62,7 @@ class BasicModelGetAllOperations(Generic[M]):
 
         sort_by: Optional[str] = None,
 
-        query_select: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         desc: int = 0,
 
@@ -70,11 +70,11 @@ class BasicModelGetAllOperations(Generic[M]):
 
         limit: int = -1,
 
-        is_pagination: Literal[True] = True,
+        is_pagination: Literal[False] = False,
 
-        **kwargs: Any
+        **filters: Any
 
-    ) -> ListDTO[M]:
+    ) -> Sequence[M]:
         ...
 
     async def get_all(
@@ -90,7 +90,7 @@ class BasicModelGetAllOperations(Generic[M]):
 
         sort_by: Optional[str] = None,
 
-        query_select: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         desc: int = 0,
 
@@ -100,7 +100,7 @@ class BasicModelGetAllOperations(Generic[M]):
 
         is_pagination: bool = True,
 
-        **kwargs: Any
+        **filters: Any
 
     ) -> Union[ListDTO[M], Sequence[M]]:
         """Получение списка моделей по фильтрам, сортировке и пагинацией из базы данных
@@ -111,7 +111,7 @@ class BasicModelGetAllOperations(Generic[M]):
             search_fields (Optional[list[str]], optional): Поля для поиска. Defaults to None.
             loads (Optional[dict[str, str]], optional): Поля для загрузки. Defaults to None.
             sort_by (Optional[str], optional): Поле для сортировки. Defaults to None.
-            query_select (Optional[Select[Any]], optional): Запрос для выборки. Defaults to None.
+            query (Optional[Select[Any]], optional): Запрос для выборки. Defaults to None.
             desc (int, optional): Порядок сортировки. Defaults to 0.
             page (int, optional): Номер страницы. Defaults to 1.
             limit (int, optional): Количество элементов на странице. Defaults to -1.
@@ -130,8 +130,8 @@ class BasicModelGetAllOperations(Generic[M]):
 
         desc_int = desc
 
-        if query_select is None:
-            query_select = select(
+        if query is None:
+            query = select(
                 self.model
             )
 
@@ -149,14 +149,14 @@ class BasicModelGetAllOperations(Generic[M]):
                     )
 
             if search_conditions:
-                query_select = query_select.filter(
+                query = query.filter(
                     or_(*search_conditions))  # type: ignore
 
         if loads:
             for key, val in loads.items():
                 if val == "s":
                     if hasattr(self.model, key):
-                        query_select = query_select.options(
+                        query = query.options(
                             selectinload(getattr(self.model, key))
                         )
                     else:
@@ -166,7 +166,7 @@ class BasicModelGetAllOperations(Generic[M]):
                         )
                 elif val == "j":
                     if hasattr(self.model, key):
-                        query_select = query_select.options(
+                        query = query.options(
                             joinedload(getattr(self.model, key))
                         )
                     else:
@@ -175,19 +175,19 @@ class BasicModelGetAllOperations(Generic[M]):
                             detail=f"Поле {key} для загрузки не найдено"
                         )
 
-        if kwargs:
-            query_select = query_select.filter_by(**kwargs)
+        if filters:
+            query = query.filter_by(**filters)
 
         if page < 1:
             raise HTTPException(
                 status_code=400, detail="Номер страницы должен быть больше 0"
             )
 
-        q_total_record = query_select
+        q_total_record = query
 
         if sort_by:
             if hasattr(self.model, sort_by):
-                query_select = query_select.order_by(
+                query = query.order_by(
                     func_desc(getattr(self.model, sort_by)) if desc_int else asc(
                         getattr(self.model, sort_by))
                 )
@@ -196,11 +196,11 @@ class BasicModelGetAllOperations(Generic[M]):
                     status_code=400, detail=f"Поле {sort_by} для сортировки не найдено"
                 )
 
-        query_select = query_select.offset((page - 1) * limit)
+        query = query.offset((page - 1) * limit)
         if limit != -1:
-            query_select = query_select.limit(limit)
+            query = query.limit(limit)
 
-        result = await session.execute(query_select)
+        result = await session.execute(query)
         content = result.scalars().all()
 
         if is_pagination:
