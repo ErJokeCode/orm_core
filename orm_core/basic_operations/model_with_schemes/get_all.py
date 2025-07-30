@@ -45,7 +45,7 @@ class BasicGetAllSchemeOperations(
 
         sort_by: Optional[str] = None,
 
-        query_select: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         desc: int = 0,
 
@@ -55,7 +55,7 @@ class BasicGetAllSchemeOperations(
 
         is_pagination: Literal[False] = False,
 
-        **kwargs: Any
+        **filters: Any
 
     ) -> Sequence[M]:
         ...
@@ -74,7 +74,7 @@ class BasicGetAllSchemeOperations(
 
         sort_by: Optional[str] = None,
 
-        query_select: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         desc: int = 0,
 
@@ -84,7 +84,7 @@ class BasicGetAllSchemeOperations(
 
         is_pagination: Literal[True] = True,
 
-        **kwargs: Any
+        **filters: Any
 
     ) -> ListDTO[M]:
         ...
@@ -103,7 +103,7 @@ class BasicGetAllSchemeOperations(
 
         sort_by: Optional[str] = None,
 
-        query_select: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         desc: int = 0,
 
@@ -115,7 +115,7 @@ class BasicGetAllSchemeOperations(
 
         is_model: Literal[False] = False,
 
-        **kwargs: Any
+        **filters: Any
 
     ) -> ListDTO[O]:
         ...
@@ -134,7 +134,7 @@ class BasicGetAllSchemeOperations(
 
         sort_by: Optional[str] = None,
 
-        query_select: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         desc: int = 0,
 
@@ -146,7 +146,7 @@ class BasicGetAllSchemeOperations(
 
         is_model: Literal[False] = False,
 
-        **kwargs: Any
+        **filters: Any
 
     ) -> Sequence[M]:
         ...
@@ -164,7 +164,7 @@ class BasicGetAllSchemeOperations(
 
         sort_by: Optional[str] = None,
 
-        query_select: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         desc: int = 0,
 
@@ -176,7 +176,7 @@ class BasicGetAllSchemeOperations(
 
         is_model: bool = True,
 
-        **kwargs: Any
+        **filters: Any
 
     ) -> Union[ListDTO[M], Sequence[M], ListDTO[O], Sequence[O]]:
         """Получение списка обектов по фильтрам, сортировке и пагинацией из базы данных
@@ -187,13 +187,13 @@ class BasicGetAllSchemeOperations(
             search_fields (Optional[list[str]], optional): Поля поиска. По умолчанию None
             loads (Optional[dict[str, str]], optional): Поля для загрузки. По умолчанию None
             sort_by (Optional[str], optional): Поле сортировки. По умолчанию None
-            query_select (Optional[Select[Any]], optional): Кастомный селект запрос. По умолчанию None
+            query (Optional[Select[Any]], optional): Кастомный селект запрос. По умолчанию None
             desc (int, optional): Порядок сортировки. По умолчанию 0
             page (int, optional): Номер страницы. По умолчанию 1
             limit (int, optional): Количество элементов на странице. По умолчанию -1
             is_pagination (bool, optional): Пагинация. По умолчанию True
             is_model (bool, optional): Возвращение объекта в виде модели или схемы. По умолчанию True
-            **kwargs (Any): Дополнительная фильтрация по полям
+            **filters (Any): Дополнительная фильтрация по полям
 
         Returns:
             Union[ListDTO[M], Sequence[M], ListDTO[O], Sequence[O]]: Список обектов
@@ -209,12 +209,12 @@ class BasicGetAllSchemeOperations(
                 search_fields=search_fields,
                 loads=loads,
                 sort_by=sort_by,
-                query_select=query_select,
+                query=query,
                 desc=desc,
                 page=page,
                 limit=limit,
                 is_pagination=True,
-                **kwargs
+                **filters
             )
 
             if is_model:
@@ -241,12 +241,12 @@ class BasicGetAllSchemeOperations(
             search_fields=search_fields,
             loads=loads,
             sort_by=sort_by,
-            query_select=query_select,
+            query=query,
             desc=desc,
             page=page,
             limit=limit,
             is_pagination=False,
-            **kwargs
+            **filters
         )
 
         if is_model:

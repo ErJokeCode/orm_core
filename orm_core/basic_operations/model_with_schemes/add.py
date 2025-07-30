@@ -36,26 +36,6 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
 
         data: Union[A, M, dict[str, Any]],
 
-        is_return: bool,
-
-        is_model: bool,
-
-        loads: Optional[dict[str, str]],
-
-        query: Union[Select[Any], None]
-
-    ) -> Union[M, O, None]: ...
-
-    @overload
-    async def add(
-        self,
-
-        *,
-
-        session: AsyncSession,
-
-        data: Union[A, M, dict[str, Any]],
-
         is_return: Literal[True] = True,
 
         is_model: Literal[True] = True,
@@ -99,6 +79,26 @@ class BasicAddSchemeOperations(BasicModelAddOperations[M], Generic[M, A, E, O]):
         is_return: Literal[False] = False
 
     ) -> None: ...
+
+    @overload
+    async def add(
+        self,
+
+        *,
+
+        session: AsyncSession,
+
+        data: Union[A, M, dict[str, Any]],
+
+        is_return: bool,
+
+        is_model: bool,
+
+        loads: Optional[dict[str, str]],
+
+        query: Union[Select[Any], None]
+
+    ) -> Union[M, O, None]: ...
 
     async def add(
         self,

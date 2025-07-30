@@ -36,9 +36,9 @@ class BasicGetBySchemeOperations(
         *,
         session: AsyncSession,
         loads: Optional[dict[str, str]] = None,
-        is_model: Literal[True],
-        is_get_none: Literal[True],
-        **kwargs: Any
+        is_model: Literal[True] = True,
+        is_get_none: Literal[True] = True,
+        **filters: Any
     ) -> Optional[M]: ...
 
     @overload
@@ -47,9 +47,9 @@ class BasicGetBySchemeOperations(
         *,
         session: AsyncSession,
         loads: Optional[dict[str, str]] = None,
-        is_model: Literal[True],
+        is_model: Literal[True] = True,
         is_get_none: Literal[False] = False,
-        **kwargs: Any
+        **filters: Any
     ) -> M: ...
 
     @overload
@@ -58,8 +58,8 @@ class BasicGetBySchemeOperations(
         *,
         session: AsyncSession,
         loads: Optional[dict[str, str]] = None,
-        is_get_none: Literal[True],
-        **kwargs: Any
+        is_get_none: Literal[True] = True,
+        **filters: Any
     ) -> Optional[O]: ...
 
     @overload
@@ -69,7 +69,7 @@ class BasicGetBySchemeOperations(
         session: AsyncSession,
         loads: Optional[dict[str, str]] = None,
         is_get_none: Literal[False] = False,
-        **kwargs: Any
+        **filters: Any
     ) -> O: ...
 
     @overload
@@ -80,7 +80,7 @@ class BasicGetBySchemeOperations(
         loads: Optional[dict[str, str]] = None,
         is_model: bool = False,
         is_get_none: bool = False,
-        **kwargs: Any
+        **filters: Any
     ) -> Union[M, O, None]: ...
 
     async def get_by(
@@ -90,7 +90,7 @@ class BasicGetBySchemeOperations(
         loads: Optional[dict[str, str]] = None,
         is_model: bool = False,
         is_get_none: bool = False,
-        **kwargs: Any
+        **filters: Any
     ) -> Union[O, M, None]:
         ...
         """
@@ -101,7 +101,7 @@ class BasicGetBySchemeOperations(
             loads (Optional[dict[str, str]], optional): Список полей для дополнительной загрузки. Defaults to None.
             is_model (bool, optional): Возвращать ли объект модели. Defaults to True.
             is_get_none (bool, optional): Возвращать ли None, если объект не найден. Defaults to False.
-            **kwargs (Any): Поля
+            **filters (Any): Поля
 
         Raises:
             HTTPException: 404 Нет обязательных полей
@@ -109,7 +109,7 @@ class BasicGetBySchemeOperations(
         Returns:
             Optional[O, M]: Объект
         """
-        if not all(pk in kwargs.keys() for pk in self.pks):
+        if not all(pk in filters.keys() for pk in self.pks):
             raise HTTPException(
                 status_code=404,
                 detail=f"Нет обязательных полей {self.pks}"
@@ -123,13 +123,13 @@ class BasicGetBySchemeOperations(
                 session=session,
                 loads=loads,
                 is_get_none=True,
-                **kwargs
+                **filters
             )
         else:
             model = await super().get_by(
                 session=session,
                 loads=loads,
-                **kwargs
+                **filters
             )
 
         if is_model:

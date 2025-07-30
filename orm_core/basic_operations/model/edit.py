@@ -72,6 +72,26 @@ class BasicModelEditOperations(Generic[M]):
 
     ) -> None: ...
 
+    @overload
+    async def edit(
+        self,
+
+        session: AsyncSession,
+
+        edit_item: dict[str, Any],
+
+        is_return: bool,
+
+        loads: Optional[dict[str, str]],
+
+        query: Optional[Select[M]],
+
+        is_get_none: bool,
+
+        **pks: Any
+
+    ) -> Optional[M]: ...
+
     async def edit(
         self,
 

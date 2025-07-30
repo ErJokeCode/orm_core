@@ -41,7 +41,7 @@ class BasicEditSchemeOperations(
 
         is_return: Literal[False] = False,
 
-        return_query: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         is_get_none: bool = True,
 
@@ -63,7 +63,7 @@ class BasicEditSchemeOperations(
 
         is_return: Literal[True] = True,
 
-        return_query: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         is_get_none: Literal[False] = False,
 
@@ -85,29 +85,7 @@ class BasicEditSchemeOperations(
 
         is_return: Literal[True] = True,
 
-        return_query: Optional[Select[Any]] = None,
-
-        is_get_none: Literal[True] = True,
-
-        is_model: Literal[True] = True,
-
-        **pks: Any
-
-    ) -> Optional[M]: ...
-
-    @overload
-    async def edit(
-        self,
-
-        session: AsyncSession,
-
-        edit_item: dict[str, Any],
-
-        loads: Optional[dict[str, str]] = None,
-
-        is_return: Literal[True] = True,
-
-        return_query: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         is_get_none: Literal[False] = False,
 
@@ -125,33 +103,11 @@ class BasicEditSchemeOperations(
 
         edit_item: dict[str, Any],
 
-        loads: Optional[dict[str, str]] = None,
-
-        is_return: Literal[True] = True,
-
-        return_query: Optional[Select[Any]] = None,
-
-        is_get_none: Literal[True] = True,
-
-        is_model: Literal[False] = False,
-
-        **pks: Any
-
-    ) -> Optional[O]: ...
-
-    @overload
-    async def edit(
-        self,
-
-        session: AsyncSession,
-
-        edit_item: dict[str, Any],
-
         loads: Optional[dict[str, str]],
 
         is_return: bool,
 
-        return_query: Optional[Select[Any]],
+        query: Optional[Select[Any]],
 
         is_get_none: bool,
 
@@ -173,7 +129,7 @@ class BasicEditSchemeOperations(
 
         is_return: bool,
 
-        return_query: Optional[Select[Any]],
+        query: Optional[Select[Any]],
 
         is_get_none: bool,
 
@@ -195,7 +151,7 @@ class BasicEditSchemeOperations(
 
         is_return: bool,
 
-        return_query: Optional[Select[Any]],
+        query: Optional[Select[Any]],
 
         is_get_none: bool,
 
@@ -216,7 +172,7 @@ class BasicEditSchemeOperations(
 
         is_return: bool = True,
 
-        return_query: Optional[Select[Any]] = None,
+        query: Optional[Select[Any]] = None,
 
         is_get_none: bool = True,
 
@@ -232,7 +188,7 @@ class BasicEditSchemeOperations(
             edit_item (dict[str, Any]): Поля для изменения
             loads (Optional[dict[str, str]], optional): Список полей для загрузки связанных объектов. По умолчанию None.
             is_return (bool, optional): Возвращать ли обновленный объект. По умолчанию True.
-            return_query (Optional[Select[Any]], optional): Запрос для возврата. По умолчанию None.
+            query (Optional[Select[Any]], optional): Запрос для возврата. По умолчанию None.
             is_get_none (bool, optional): Возвращает None, если не найден. По умолчанию True.
             is_model (bool, optional): _Возвращает ли объекта в виде модели или схемы. По умолчанию True.
 
@@ -249,7 +205,7 @@ class BasicEditSchemeOperations(
             edit_item=edit_item,
             loads=loads,
             is_return=is_return,
-            return_query=return_query,
+            query=query,
             is_get_none=is_get_none,
             **pks
         )

@@ -19,22 +19,6 @@ class BasicModelAddOperations(Generic[M]):
     @overload
     async def add(
         self,
-
-        session: AsyncSession,
-
-        data: Union[M, dict[str, Any]],
-
-        is_return: bool,
-
-        loads: Optional[dict[str, str]],
-
-        query: Optional[Select[Any]]
-
-    ) -> Optional[M]: ...
-
-    @overload
-    async def add(
-        self,
         *,
         session: AsyncSession,
         data: Union[M, dict[str, Any]],
@@ -53,6 +37,22 @@ class BasicModelAddOperations(Generic[M]):
         is_return: Literal[False] = False
     ) -> None:
         ...
+
+    @overload
+    async def add(
+        self,
+
+        session: AsyncSession,
+
+        data: Union[M, dict[str, Any]],
+
+        is_return: bool,
+
+        loads: Optional[dict[str, str]],
+
+        query: Optional[Select[Any]]
+
+    ) -> Optional[M]: ...
 
     async def add(
         self,
